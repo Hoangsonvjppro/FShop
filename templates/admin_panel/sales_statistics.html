@@ -18,7 +18,7 @@
                 {% if today_percent_change > 0 %}
                 <span class="text-green-500 text-sm"><i class="fas fa-arrow-up mr-1"></i>{{ today_percent_change }}%</span>
                 {% elif today_percent_change < 0 %}
-                <span class="text-red-500 text-sm"><i class="fas fa-arrow-down mr-1"></i>{{ today_percent_change|abs }}%</span>
+                <span class="text-red-500 text-sm"><i class="fas fa-arrow-down mr-1"></i>{{ today_percent_change|abs_value }}%</span>
                 {% else %}
                 <span class="text-gray-500 text-sm">0%</span>
                 {% endif %}
@@ -33,7 +33,7 @@
                 {% if week_percent_change > 0 %}
                 <span class="text-green-500 text-sm"><i class="fas fa-arrow-up mr-1"></i>{{ week_percent_change }}%</span>
                 {% elif week_percent_change < 0 %}
-                <span class="text-red-500 text-sm"><i class="fas fa-arrow-down mr-1"></i>{{ week_percent_change|abs }}%</span>
+                <span class="text-red-500 text-sm"><i class="fas fa-arrow-down mr-1"></i>{{ week_percent_change|abs_value }}%</span>
                 {% else %}
                 <span class="text-gray-500 text-sm">0%</span>
                 {% endif %}
@@ -48,7 +48,7 @@
                 {% if month_percent_change > 0 %}
                 <span class="text-green-500 text-sm"><i class="fas fa-arrow-up mr-1"></i>{{ month_percent_change }}%</span>
                 {% elif month_percent_change < 0 %}
-                <span class="text-red-500 text-sm"><i class="fas fa-arrow-down mr-1"></i>{{ month_percent_change|abs }}%</span>
+                <span class="text-red-500 text-sm"><i class="fas fa-arrow-down mr-1"></i>{{ month_percent_change|abs_value }}%</span>
                 {% else %}
                 <span class="text-gray-500 text-sm">0%</span>
                 {% endif %}
@@ -63,7 +63,7 @@
                 {% if year_percent_change > 0 %}
                 <span class="text-green-500 text-sm"><i class="fas fa-arrow-up mr-1"></i>{{ year_percent_change }}%</span>
                 {% elif year_percent_change < 0 %}
-                <span class="text-red-500 text-sm"><i class="fas fa-arrow-down mr-1"></i>{{ year_percent_change|abs }}%</span>
+                <span class="text-red-500 text-sm"><i class="fas fa-arrow-down mr-1"></i>{{ year_percent_change|abs_value }}%</span>
                 {% else %}
                 <span class="text-gray-500 text-sm">0%</span>
                 {% endif %}
