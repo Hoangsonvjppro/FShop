@@ -81,20 +81,55 @@ def order_create(request):
     full_name = request.POST.get('full_name')
     email = request.POST.get('email')
     phone = request.POST.get('phone')
-    address_id = request.POST.get('address_id')
     note = request.POST.get('note', '')
     payment_method = request.POST.get('payment_method')
+    shipping_method = request.POST.get('shipping_method', 'standard')
     
-    if not all([full_name, email, phone, address_id, payment_method]):
+    # Tính phí giao hàng dựa trên phương thức
+    shipping_fee = 50000 if shipping_method == 'express' else 30000
+    
+    # Xử lý địa chỉ
+    address_id = request.POST.get('address_id')
+    shipping_address = ""
+    
+    if address_id:
+        try:
+            # Sử dụng địa chỉ có sẵn
+            address = Address.objects.get(id=address_id)
+            shipping_address = address.get_full_address()
+        except Address.DoesNotExist:
+            # Nếu không tìm thấy địa chỉ, chuyển hướng về checkout
+            messages.error(request, 'Vui lòng chọn hoặc nhập địa chỉ giao hàng')
+            return redirect('checkout')
+    else:
+        # Tạo địa chỉ từ form
+        province = request.POST.get('province')
+        district = request.POST.get('district')
+        ward = request.POST.get('ward')
+        street = request.POST.get('street')
+        
+        # Lấy text của các select option
+        province_text = dict(zip(
+            [option.split('"')[1] for option in str(request.POST).split('value="')[1:] if 'province' in str(option)],
+            [option.split('>')[1].split('<')[0] for option in str(request.POST).split('<option')[1:] if 'province' in str(option)]
+        )).get(province, '')
+        
+        district_text = "Quận/Huyện"  # Fallback
+        ward_text = "Phường/Xã"       # Fallback
+        
+        if province and district and ward and street:
+            shipping_address = f"{street}, {ward_text}, {district_text}, {province_text}"
+        else:
+            messages.error(request, 'Vui lòng nhập đầy đủ thông tin địa chỉ')
+            return redirect('checkout')
+    
+    # Kiểm tra dữ liệu cần thiết
+    if not all([full_name, email, phone, shipping_address, payment_method]):
         messages.error(request, 'Vui lòng điền đầy đủ thông tin')
         return redirect('checkout')
     
-    # Lấy địa chỉ
-    address = get_object_or_404(Address, id=address_id)
-    
     # Tính tổng tiền
     subtotal = sum(item.subtotal for item in cart_items)
-    shipping_fee = 30000  # Phí vận chuyển cố định
     total = subtotal + shipping_fee
     
     # Tạo đơn hàng
@@ -103,8 +138,7 @@ def order_create(request):
         full_name=full_name,
         email=email,
         phone=phone,
-        address=address,
-        shipping_address=address.get_full_address(),
+        shipping_address=shipping_address,
         note=note,
         total_price=subtotal,
         shipping_fee=shipping_fee,
@@ -124,6 +158,7 @@ def order_create(request):
     # Xóa giỏ hàng sau khi đặt hàng
     cart_items.delete()
     
+    messages.success(request, 'Đặt hàng thành công! Cảm ơn bạn đã mua hàng.')
     return redirect('order_complete', order_id=order.id)
 
 
