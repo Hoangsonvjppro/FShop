@@ -458,74 +458,70 @@
         
         // Load provinces/districts/wards data
         function loadProvinces() {
-            fetch('/api/provinces/')
-                .then(response => response.json())
-                .then(data => {
-                    const provinceSelect = document.getElementById('province');
-                    data.forEach(province => {
-                        const option = document.createElement('option');
-                        option.value = province.code;
-                        option.textContent = province.name;
-                        provinceSelect.appendChild(option);
-                    });
-                    
-                    provinceSelect.addEventListener('change', function() {
-                        loadDistricts(this.value);
-                    });
-                })
-                .catch(error => console.error('Error loading provinces:', error));
+            // Static data is now in the HTML, just add the change event listener
+            const provinceSelect = document.getElementById('province');
+            provinceSelect.addEventListener('change', function() {
+                loadDistricts(this.value);
+            });
         }
         
         function loadDistricts(provinceCode) {
             const districtSelect = document.getElementById('district');
             districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
-            districtSelect.disabled = true;
             
-            const wardSelect = document.getElementById('ward');
-            wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
-            wardSelect.disabled = true;
+            // Add some example districts based on province
+            if (provinceCode === '01') { // Hà Nội
+                addDistrictOption(districtSelect, '01', 'Ba Đình');
+                addDistrictOption(districtSelect, '02', 'Hoàn Kiếm');
+                addDistrictOption(districtSelect, '03', 'Hai Bà Trưng');
+                addDistrictOption(districtSelect, '04', 'Đống Đa');
+            } else if (provinceCode === '02') { // TP HCM
+                addDistrictOption(districtSelect, '01', 'Quận 1');
+                addDistrictOption(districtSelect, '02', 'Quận 3');
+                addDistrictOption(districtSelect, '03', 'Quận 5');
+                addDistrictOption(districtSelect, '04', 'Bình Thạnh');
+            } else if (provinceCode === '04') { // Huế
+                addDistrictOption(districtSelect, '01', 'TP Huế');
+                addDistrictOption(districtSelect, '02', 'Phong Điền');
+                addDistrictOption(districtSelect, '03', 'Quảng Điền');
+            } else if (provinceCode === '05') { // Bình Dương
+                addDistrictOption(districtSelect, '01', 'Thủ Dầu Một');
+                addDistrictOption(districtSelect, '02', 'Bến Cát');
+                addDistrictOption(districtSelect, '03', 'Dĩ An');
+            }
             
-            if (!provinceCode) return;
-            
-            fetch(`/api/districts/${provinceCode}/`)
-                .then(response => response.json())
-                .then(data => {
-                    data.forEach(district => {
-                        const option = document.createElement('option');
-                        option.value = district.code;
-                        option.textContent = district.name;
-                        districtSelect.appendChild(option);
-                    });
-                    
-                    districtSelect.disabled = false;
-                    
-                    districtSelect.addEventListener('change', function() {
-                        loadWards(this.value);
-                    });
-                })
-                .catch(error => console.error('Error loading districts:', error));
+            districtSelect.disabled = false;
+            districtSelect.addEventListener('change', function() {
+                loadWards(this.value);
+            });
+        }
+        
+        function addDistrictOption(selectElement, value, text) {
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = text;
+            selectElement.appendChild(option);
         }
         
         function loadWards(districtCode) {
             const wardSelect = document.getElementById('ward');
             wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
-            wardSelect.disabled = true;
             
-            if (!districtCode) return;
+            // Add some example wards
+            if (districtCode) {
+                addWardOption(wardSelect, '01', 'Phường 1');
+                addWardOption(wardSelect, '02', 'Phường 2');
+                addWardOption(wardSelect, '03', 'Phường 3');
+            }
             
-            fetch(`/api/wards/${districtCode}/`)
-                .then(response => response.json())
-                .then(data => {
-                    data.forEach(ward => {
-                        const option = document.createElement('option');
-                        option.value = ward.code;
-                        option.textContent = ward.name;
-                        wardSelect.appendChild(option);
-                    });
-                    
-                    wardSelect.disabled = false;
-                })
-                .catch(error => console.error('Error loading wards:', error));
+            wardSelect.disabled = false;
+        }
+        
+        function addWardOption(selectElement, value, text) {
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = text;
+            selectElement.appendChild(option);
         }
     });
 </script>
