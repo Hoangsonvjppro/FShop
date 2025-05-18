@@ -56,19 +56,20 @@
                 
                 <div>
                     <label for="site_name" class="block text-sm font-medium text-gray-700 mb-1">Tên trang web</label>
-                    <input type="text" id="site_name" name="site_name" value="{{ settings.site_name }}" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    <input type="text" id="site_name" name="site_name" value="FShop - Cửa hàng nội thất" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
                 </div>
                 
                 <div>
                     <label for="site_description" class="block text-sm font-medium text-gray-700 mb-1">Mô tả trang web</label>
-                    <textarea id="site_description" name="site_description" rows="3" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">{{ settings.site_description }}</textarea>
+                    <textarea id="site_description" name="site_description" rows="3" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">FShop - Hệ thống cửa hàng nội thất cao cấp với đa dạng sản phẩm cho phòng khách, phòng ngủ, phòng làm việc và các không gian sống khác.</textarea>
                 </div>
                 
                 <div>
                     <label for="maintenance_mode" class="flex items-center">
-                        <input type="checkbox" id="maintenance_mode" name="maintenance_mode" {% if settings.maintenance_mode %}checked{% endif %} class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                        <input type="checkbox" id="maintenance_mode" name="maintenance_mode" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
                         <span class="ml-2 text-sm text-gray-900">Chế độ bảo trì</span>
                     </label>
+                    <p class="mt-1 text-xs text-gray-500">Khi bật chế độ này, website sẽ hiển thị trang bảo trì và không cho phép khách hàng truy cập.</p>
                 </div>
                 
                 <div class="flex justify-end">
@@ -82,29 +83,102 @@
         <!-- Thông tin cửa hàng -->
         <div id="store" class="settings-section bg-white rounded-lg shadow-sm p-6 mb-6 hidden">
             <h2 class="text-xl font-semibold mb-4">Thông tin cửa hàng</h2>
-            <form method="post" action="{% url 'admin_settings' %}" class="space-y-4">
+            <form method="post" action="{% url 'admin_settings' %}" class="space-y-4" enctype="multipart/form-data">
                 {% csrf_token %}
                 <input type="hidden" name="setting_type" value="store">
                 
                 <div>
+                    <label for="store_logo" class="block text-sm font-medium text-gray-700 mb-1">Logo cửa hàng</label>
+                    <div class="flex items-center">
+                        <div class="w-20 h-20 bg-gray-100 rounded-md flex items-center justify-center mr-4">
+                            <img src="{% static 'images/logo.png' %}" alt="Logo" class="max-h-16 max-w-16" onerror="this.src='https://via.placeholder.com/80x80?text=Logo'">
+                        </div>
+                        <div>
+                            <input type="file" id="store_logo" name="store_logo" class="block text-sm text-gray-500
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-md file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-primary-50 file:text-primary-700
+                            hover:file:bg-primary-100">
+                            <p class="mt-1 text-xs text-gray-500">Kích thước khuyến nghị: 200x80 pixel</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
                     <label for="store_name" class="block text-sm font-medium text-gray-700 mb-1">Tên cửa hàng</label>
-                    <input type="text" id="store_name" name="store_name" value="{{ settings.store_name }}" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    <input type="text" id="store_name" name="store_name" value="FShop" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
                 </div>
                 
                 <div>
                     <label for="store_address" class="block text-sm font-medium text-gray-700 mb-1">Địa chỉ</label>
-                    <input type="text" id="store_address" name="store_address" value="{{ settings.store_address }}" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    <input type="text" id="store_address" name="store_address" value="123 Đường ABC, Quận 1, TP Hồ Chí Minh" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label for="store_phone" class="block text-sm font-medium text-gray-700 mb-1">Điện thoại</label>
-                        <input type="text" id="store_phone" name="store_phone" value="{{ settings.store_phone }}" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        <input type="text" id="store_phone" name="store_phone" value="0909 123 456" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
                     </div>
                     
                     <div>
                         <label for="store_email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input type="email" id="store_email" name="store_email" value="{{ settings.store_email }}" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        <input type="email" id="store_email" name="store_email" value="contact@fshop.com" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="store_hours" class="block text-sm font-medium text-gray-700 mb-1">Giờ làm việc</label>
+                    <input type="text" id="store_hours" name="store_hours" value="Thứ 2 - Thứ 6: 8:00 - 17:30, Thứ 7: 8:00 - 12:00" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+                
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-primary-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Bảo mật -->
+        <div id="security" class="settings-section bg-white rounded-lg shadow-sm p-6 mb-6 hidden">
+            <h2 class="text-xl font-semibold mb-4">Bảo mật</h2>
+            <form method="post" action="{% url 'admin_settings' %}" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="setting_type" value="security">
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Phiên đăng nhập</label>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="session_expire" name="session_expire" checked class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                            <label for="session_expire" class="ml-2 text-sm text-gray-900">Tự động đăng xuất sau một khoảng thời gian không hoạt động</label>
+                        </div>
+                        
+                        <div class="ml-6">
+                            <label for="session_expire_time" class="block text-sm text-gray-700 mb-1">Thời gian không hoạt động (phút)</label>
+                            <input type="number" id="session_expire_time" name="session_expire_time" value="30" min="5" max="1440" class="block w-32 border border-gray-300 rounded-md shadow-sm py-1 px-2 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Bảo mật mật khẩu</label>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="password_complexity" name="password_complexity" checked class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                            <label for="password_complexity" class="ml-2 text-sm text-gray-900">Yêu cầu mật khẩu phức tạp (ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt)</label>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="password_expire" name="password_expire" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                            <label for="password_expire" class="ml-2 text-sm text-gray-900">Yêu cầu thay đổi mật khẩu định kỳ</label>
+                        </div>
+                        
+                        <div class="ml-6">
+                            <label for="password_expire_days" class="block text-sm text-gray-700 mb-1">Thời gian hết hạn mật khẩu (ngày)</label>
+                            <input type="number" id="password_expire_days" name="password_expire_days" value="90" min="30" max="365" class="block w-32 border border-gray-300 rounded-md shadow-sm py-1 px-2 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        </div>
                     </div>
                 </div>
                 
@@ -116,7 +190,243 @@
             </form>
         </div>
         
-        <!-- Các phần cài đặt khác tương tự -->
+        <!-- Email -->
+        <div id="emails" class="settings-section bg-white rounded-lg shadow-sm p-6 mb-6 hidden">
+            <h2 class="text-xl font-semibold mb-4">Thiết lập Email</h2>
+            <form method="post" action="{% url 'admin_settings' %}" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="setting_type" value="email">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="email_from_name" class="block text-sm font-medium text-gray-700 mb-1">Tên người gửi</label>
+                        <input type="text" id="email_from_name" name="email_from_name" value="FShop" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    </div>
+                    
+                    <div>
+                        <label for="email_from_address" class="block text-sm font-medium text-gray-700 mb-1">Email người gửi</label>
+                        <input type="email" id="email_from_address" name="email_from_address" value="noreply@fshop.com" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Thông báo Email</label>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="order_confirmation_email" name="order_confirmation_email" checked class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                            <label for="order_confirmation_email" class="ml-2 text-sm text-gray-900">Gửi email xác nhận đơn hàng</label>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="order_shipping_email" name="order_shipping_email" checked class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                            <label for="order_shipping_email" class="ml-2 text-sm text-gray-900">Gửi email khi đơn hàng được giao</label>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="order_delivered_email" name="order_delivered_email" checked class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                            <label for="order_delivered_email" class="ml-2 text-sm text-gray-900">Gửi email khi đơn hàng đã được giao</label>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="abandoned_cart_email" name="abandoned_cart_email" checked class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                            <label for="abandoned_cart_email" class="ml-2 text-sm text-gray-900">Gửi email nhắc nhở giỏ hàng bị bỏ quên</label>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="promotional_email" name="promotional_email" checked class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                            <label for="promotional_email" class="ml-2 text-sm text-gray-900">Gửi email khuyến mãi và thông báo</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-primary-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Thanh toán -->
+        <div id="payment" class="settings-section bg-white rounded-lg shadow-sm p-6 mb-6 hidden">
+            <h2 class="text-xl font-semibold mb-4">Phương thức thanh toán</h2>
+            <form method="post" action="{% url 'admin_settings' %}" class="space-y-6">
+                {% csrf_token %}
+                <input type="hidden" name="setting_type" value="payment">
+                
+                <!-- COD -->
+                <div class="border-b pb-4">
+                    <div class="flex items-center mb-3">
+                        <input type="checkbox" id="payment_cod" name="payment_cod" checked class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                        <label for="payment_cod" class="ml-2 text-base font-medium text-gray-900">Thanh toán khi nhận hàng (COD)</label>
+                    </div>
+                    
+                    <div class="ml-6">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="cod_limit" name="cod_limit" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                            <label for="cod_limit" class="ml-2 text-sm text-gray-900">Giới hạn số tiền thanh toán COD</label>
+                        </div>
+                        
+                        <div class="ml-6 mt-2">
+                            <label for="cod_limit_amount" class="block text-sm text-gray-700 mb-1">Số tiền tối đa</label>
+                            <div class="flex items-center">
+                                <input type="number" id="cod_limit_amount" name="cod_limit_amount" value="5000000" min="0" class="block w-32 border border-gray-300 rounded-md shadow-sm py-1 px-2 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                                <span class="ml-2 text-sm text-gray-700">VND</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Chuyển khoản ngân hàng -->
+                <div class="border-b pb-4">
+                    <div class="flex items-center mb-3">
+                        <input type="checkbox" id="payment_bank" name="payment_bank" checked class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                        <label for="payment_bank" class="ml-2 text-base font-medium text-gray-900">Chuyển khoản ngân hàng</label>
+                    </div>
+                    
+                    <div class="ml-6 space-y-4">
+                        <div>
+                            <label for="bank_name" class="block text-sm font-medium text-gray-700 mb-1">Tên ngân hàng</label>
+                            <input type="text" id="bank_name" name="bank_name" value="Ngân hàng TMCP Kỹ Thương Việt Nam (Techcombank)" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        </div>
+                        
+                        <div>
+                            <label for="bank_account" class="block text-sm font-medium text-gray-700 mb-1">Số tài khoản</label>
+                            <input type="text" id="bank_account" name="bank_account" value="19036251003366" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        </div>
+                        
+                        <div>
+                            <label for="bank_holder" class="block text-sm font-medium text-gray-700 mb-1">Chủ tài khoản</label>
+                            <input type="text" id="bank_holder" name="bank_holder" value="CÔNG TY TNHH FSHOP" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- MoMo -->
+                <div class="border-b pb-4">
+                    <div class="flex items-center mb-3">
+                        <input type="checkbox" id="payment_momo" name="payment_momo" checked class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                        <label for="payment_momo" class="ml-2 text-base font-medium text-gray-900">Ví điện tử MoMo</label>
+                    </div>
+                    
+                    <div class="ml-6 space-y-4">
+                        <div>
+                            <label for="momo_partner_code" class="block text-sm font-medium text-gray-700 mb-1">Mã đối tác (Partner Code)</label>
+                            <input type="text" id="momo_partner_code" name="momo_partner_code" value="MOMOXXXXX" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        </div>
+                        
+                        <div>
+                            <label for="momo_access_key" class="block text-sm font-medium text-gray-700 mb-1">Khóa truy cập (Access Key)</label>
+                            <input type="password" id="momo_access_key" name="momo_access_key" value="xxxxxxxxxxxxxxxxxx" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Thẻ tín dụng -->
+                <div>
+                    <div class="flex items-center mb-3">
+                        <input type="checkbox" id="payment_card" name="payment_card" checked class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                        <label for="payment_card" class="ml-2 text-base font-medium text-gray-900">Thẻ tín dụng</label>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-primary-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Vận chuyển -->
+        <div id="shipping" class="settings-section bg-white rounded-lg shadow-sm p-6 mb-6 hidden">
+            <h2 class="text-xl font-semibold mb-4">Cài đặt vận chuyển</h2>
+            <form method="post" action="{% url 'admin_settings' %}" class="space-y-6">
+                {% csrf_token %}
+                <input type="hidden" name="setting_type" value="shipping">
+                
+                <!-- Phí vận chuyển cơ bản -->
+                <div class="border-b pb-4">
+                    <h3 class="text-lg font-medium mb-3">Phí vận chuyển tiêu chuẩn</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label for="shipping_fee" class="block text-sm font-medium text-gray-700 mb-1">Phí vận chuyển cơ bản</label>
+                            <div class="flex items-center">
+                                <input type="number" id="shipping_fee" name="shipping_fee" value="30000" min="0" class="block w-32 border border-gray-300 rounded-md shadow-sm py-1 px-2 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                                <span class="ml-2 text-sm text-gray-700">VND</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="free_shipping_threshold" name="free_shipping_threshold" checked class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                            <label for="free_shipping_threshold" class="ml-2 text-sm text-gray-900">Miễn phí giao hàng cho đơn hàng từ:</label>
+                            <div class="ml-2 flex items-center">
+                                <input type="number" id="free_shipping_amount" name="free_shipping_amount" value="1000000" min="0" class="block w-32 border border-gray-300 rounded-md shadow-sm py-1 px-2 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                                <span class="ml-2 text-sm text-gray-700">VND</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Phí vận chuyển nhanh -->
+                <div>
+                    <h3 class="text-lg font-medium mb-3">Giao hàng nhanh</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="express_shipping" name="express_shipping" checked class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                            <label for="express_shipping" class="ml-2 text-sm text-gray-900">Cho phép giao hàng nhanh</label>
+                        </div>
+                        
+                        <div>
+                            <label for="express_shipping_fee" class="block text-sm font-medium text-gray-700 mb-1">Phí giao hàng nhanh</label>
+                            <div class="flex items-center">
+                                <input type="number" id="express_shipping_fee" name="express_shipping_fee" value="50000" min="0" class="block w-32 border border-gray-300 rounded-md shadow-sm py-1 px-2 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                                <span class="ml-2 text-sm text-gray-700">VND</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-primary-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Quản lý nhân viên -->
+        <div id="users" class="settings-section bg-white rounded-lg shadow-sm p-6 mb-6 hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Quản lý nhân viên</h2>
+                <a href="{% url 'admin_employee_list' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700">
+                    <i class="fas fa-users mr-2"></i> Xem tất cả
+                </a>
+            </div>
+            
+            <div class="grid grid-cols-1 gap-4">
+                {% for employee in employee_list|slice:":5" %}
+                <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                            <span class="text-primary-700 font-medium">{{ employee.user.first_name|first }}{{ employee.user.last_name|first }}</span>
+                        </div>
+                        <div class="ml-3">
+                            <div class="font-medium text-gray-900">{{ employee.user.first_name }} {{ employee.user.last_name }}</div>
+                            <div class="text-sm text-gray-500">{{ employee.user.email }}</div>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{{ employee.role.name }}</span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-gray-500 text-center py-4">Không có nhân viên nào</div>
+                {% endfor %}
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
