@@ -25,12 +25,12 @@
         <div>
             <label for="status" class="sr-only">Trạng thái</label>
             <select id="status" name="status" class="border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
-                <option value="" {% if status == '' %}selected{% endif %}>Tất cả trạng thái</option>
-                <option value="pending" {% if status == 'pending' %}selected{% endif %}>Chờ xác nhận</option>
-                <option value="confirmed" {% if status == 'confirmed' %}selected{% endif %}>Đã xác nhận</option>
-                <option value="shipping" {% if status == 'shipping' %}selected{% endif %}>Đang giao hàng</option>
-                <option value="completed" {% if status == 'completed' %}selected{% endif %}>Hoàn thành</option>
-                <option value="canceled" {% if status == 'canceled' %}selected{% endif %}>Đã hủy</option>
+                <option value="" {% if status_filter == '' %}selected{% endif %}>Tất cả trạng thái</option>
+                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Chờ xác nhận</option>
+                <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Đã xác nhận</option>
+                <option value="shipped" {% if status_filter == 'shipped' %}selected{% endif %}>Đang giao hàng</option>
+                <option value="delivered" {% if status_filter == 'delivered' %}selected{% endif %}>Đã giao hàng</option>
+                <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Đã hủy</option>
             </select>
         </div>
         
@@ -56,11 +56,12 @@
                 {% for order in orders %}
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900">{{ order.order_number }}</div>
+                        <div class="text-sm font-medium text-gray-900">#{{ order.id }}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">{{ order.customer.fullname }}</div>
-                        <div class="text-xs text-gray-500">{{ order.customer.phone }}</div>
+                        <div class="text-sm text-gray-900">{{ order.full_name }}</div>
+                        <div class="text-xs text-gray-500">{{ order.phone }}</div>
+                        <div class="text-xs text-gray-500">{{ order.email }}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {{ order.created_at|date:"d/m/Y H:i" }}

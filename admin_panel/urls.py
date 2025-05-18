@@ -26,6 +26,7 @@ urlpatterns = [
     path('orders/', views.order_list, name='admin_order_list'),
     path('orders/<int:order_id>/', views.order_detail, name='admin_order_detail'),
     path('orders/<int:order_id>/update-status/', views.order_update_status, name='admin_order_update_status'),
+    path('orders/<int:order_id>/cancel/', views.order_cancel, name='admin_order_cancel'),
     
     # Khách hàng
     path('customers/', views.customer_list, name='admin_customer_list'),

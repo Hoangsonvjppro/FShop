@@ -479,6 +479,26 @@ def order_update_status(request, order_id):
     return redirect('admin_order_detail', order_id=order.id)
 
 
+@login_required
+@user_passes_test(is_admin)
+def order_cancel(request, order_id):
+    """Hủy đơn hàng."""
+    order = get_object_or_404(Order, id=order_id)
+    
+    if request.method == 'POST':
+        # Chỉ cho phép hủy đơn hàng ở trạng thái "chờ xác nhận"
+        if order.status != 'pending' and order.status != 'confirmed':
+            messages.error(request, f'Không thể hủy đơn hàng #{order.id} do đơn hàng không ở trạng thái cho phép hủy')
+        else:
+            order.status = 'cancelled'
+            order.cancelled_at = timezone.now()
+            order.save()
+            
+            messages.success(request, f'Đã hủy đơn hàng #{order.id} thành công')
+    
+    return redirect('admin_order_detail', order_id=order.id)
+
+
 # CUSTOMER MANAGEMENT
 @login_required
 @user_passes_test(is_admin)
