@@ -1,0 +1,7 @@
+Django
+Pillow
+django-crispy-forms
+crispy-tailwind
+django-allauth
+python-decouple
+python-dotenv

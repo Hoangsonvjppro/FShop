@@ -1,0 +1,418 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}Tổng quan - FShop Admin{% endblock %}
+{% block header_title %}Tổng quan{% endblock %}
+
+{% block content %}
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 bg-blue-100 rounded-md p-3">
+                <i class="fas fa-shopping-bag text-blue-600 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <h2 class="text-gray-500 text-sm">Đơn hàng</h2>
+                <p class="text-2xl font-semibold text-gray-800">{{ total_orders }}</p>
+            </div>
+        </div>
+        <div class="mt-4 flex items-center">
+            <span class="{% if order_percent_increase >= 0 %}text-green-500{% else %}text-red-500{% endif %} flex items-center text-sm">
+                {% if order_percent_increase >= 0 %}
+                <i class="fas fa-arrow-up mr-1"></i>
+                {% else %}
+                <i class="fas fa-arrow-down mr-1"></i>
+                {% endif %}
+                {{ order_percent_increase|abs }}%
+            </span>
+            <span class="ml-2 text-gray-500 text-sm">so với tháng trước</span>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 bg-green-100 rounded-md p-3">
+                <i class="fas fa-coins text-green-600 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <h2 class="text-gray-500 text-sm">Doanh thu</h2>
+                <p class="text-2xl font-semibold text-gray-800">{{ total_revenue|floatformat:0 }} ₫</p>
+            </div>
+        </div>
+        <div class="mt-4 flex items-center">
+            <span class="{% if revenue_percent_increase >= 0 %}text-green-500{% else %}text-red-500{% endif %} flex items-center text-sm">
+                {% if revenue_percent_increase >= 0 %}
+                <i class="fas fa-arrow-up mr-1"></i>
+                {% else %}
+                <i class="fas fa-arrow-down mr-1"></i>
+                {% endif %}
+                {{ revenue_percent_increase|abs }}%
+            </span>
+            <span class="ml-2 text-gray-500 text-sm">so với tháng trước</span>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 bg-purple-100 rounded-md p-3">
+                <i class="fas fa-users text-purple-600 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <h2 class="text-gray-500 text-sm">Khách hàng</h2>
+                <p class="text-2xl font-semibold text-gray-800">{{ total_customers }}</p>
+            </div>
+        </div>
+        <div class="mt-4 flex items-center">
+            <span class="{% if customer_percent_increase >= 0 %}text-green-500{% else %}text-red-500{% endif %} flex items-center text-sm">
+                {% if customer_percent_increase >= 0 %}
+                <i class="fas fa-arrow-up mr-1"></i>
+                {% else %}
+                <i class="fas fa-arrow-down mr-1"></i>
+                {% endif %}
+                {{ customer_percent_increase|abs }}%
+            </span>
+            <span class="ml-2 text-gray-500 text-sm">so với tháng trước</span>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 bg-amber-100 rounded-md p-3">
+                <i class="fas fa-couch text-amber-600 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <h2 class="text-gray-500 text-sm">Sản phẩm</h2>
+                <p class="text-2xl font-semibold text-gray-800">{{ total_products }}</p>
+            </div>
+        </div>
+        <div class="mt-4 flex items-center">
+            <span class="{% if product_percent_increase >= 0 %}text-green-500{% else %}text-red-500{% endif %} flex items-center text-sm">
+                {% if product_percent_increase >= 0 %}
+                <i class="fas fa-arrow-up mr-1"></i>
+                {% else %}
+                <i class="fas fa-arrow-down mr-1"></i>
+                {% endif %}
+                {{ product_percent_increase|abs }}%
+            </span>
+            <span class="ml-2 text-gray-500 text-sm">so với tháng trước</span>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Revenue Chart -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-gray-800 font-semibold mb-4">Doanh thu theo tháng</h2>
+        <div class="h-80">
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Order Status Chart -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-gray-800 font-semibold mb-4">Trạng thái đơn hàng</h2>
+        <div class="h-80">
+            <canvas id="orderStatusChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Orders Table -->
+<div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-gray-800 font-semibold">Đơn hàng gần đây</h2>
+        <a href="{% url 'admin_orders' %}" class="text-primary-600 hover:text-primary-700 text-sm">
+            Xem tất cả <i class="fas fa-arrow-right ml-1"></i>
+        </a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Mã đơn hàng
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Khách hàng
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Ngày đặt
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Tổng tiền
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Trạng thái
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Thao tác
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for order in recent_orders %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                        #{{ order.order_number }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-8 w-8">
+                                {% if order.customer.avatar %}
+                                    <img class="h-8 w-8 rounded-full" src="{{ order.customer.avatar.url }}" alt="{{ order.customer.user.get_full_name }}">
+                                {% else %}
+                                    <div class="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600">
+                                        <span class="text-xs font-medium">{{ order.customer.user.first_name|first|upper }}{{ order.customer.user.last_name|first|upper }}</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">
+                                    {{ order.customer.user.get_full_name|default:order.customer.user.username }}
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                    {{ order.customer.user.email }}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ order.created_at|date:"d/m/Y H:i" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ order.total_amount|floatformat:0 }} ₫
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if order.status == 'pending' %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                Chờ xác nhận
+                            </span>
+                        {% elif order.status == 'processing' %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                Đang xử lý
+                            </span>
+                        {% elif order.status == 'shipped' %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                                Đang giao hàng
+                            </span>
+                        {% elif order.status == 'delivered' %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                Đã giao hàng
+                            </span>
+                        {% elif order.status == 'cancelled' %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                Đã hủy
+                            </span>
+                        {% else %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                {{ order.status }}
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <a href="{% url 'admin_order_detail' order.id %}" class="text-primary-600 hover:text-primary-900">Chi tiết</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                        Không có đơn hàng nào
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Low Stock Products and Recent Customer Activity (2 columns) -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Low Stock Products -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-gray-800 font-semibold">Sản phẩm sắp hết hàng</h2>
+            <a href="{% url 'admin_products' %}?filter=low_stock" class="text-primary-600 hover:text-primary-700 text-sm">
+                Xem tất cả <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Sản phẩm
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Tồn kho
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Thao tác
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for product in low_stock_products %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10">
+                                    {% if product.images.first %}
+                                        <img class="h-10 w-10 rounded-md object-cover" src="{{ product.images.first.image.url }}" alt="{{ product.name }}">
+                                    {% else %}
+                                        <div class="h-10 w-10 rounded-md bg-gray-100 flex items-center justify-center text-gray-400">
+                                            <i class="fas fa-image"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">
+                                        {{ product.name }}
+                                    </div>
+                                    <div class="text-sm text-gray-500">
+                                        {{ product.category.name }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                {{ product.stock }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <a href="{% url 'admin_product_edit' product.id %}" class="text-primary-600 hover:text-primary-900">Chỉnh sửa</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                            Không có sản phẩm nào sắp hết hàng
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Recent Customer Activity -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-gray-800 font-semibold">Hoạt động gần đây</h2>
+        </div>
+        <div class="flow-root">
+            <ul class="-my-5 divide-y divide-gray-200">
+                {% for activity in recent_activities %}
+                <li class="py-4">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            {% if activity.customer.avatar %}
+                                <img class="h-8 w-8 rounded-full" src="{{ activity.customer.avatar.url }}" alt="{{ activity.customer.user.get_full_name }}">
+                            {% else %}
+                                <div class="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600">
+                                    <span class="text-xs font-medium">{{ activity.customer.user.first_name|first|upper }}{{ activity.customer.user.last_name|first|upper }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm text-gray-800">
+                                {% if activity.activity_type == 'order' %}
+                                    <span class="font-medium">{{ activity.customer.user.get_full_name|default:activity.customer.user.username }}</span> đã đặt một đơn hàng <a href="{% url 'admin_order_detail' activity.reference_id %}" class="text-primary-600">#{{ activity.reference_number }}</a>
+                                {% elif activity.activity_type == 'registration' %}
+                                    <span class="font-medium">{{ activity.customer.user.get_full_name|default:activity.customer.user.username }}</span> đã đăng ký tài khoản mới
+                                {% elif activity.activity_type == 'review' %}
+                                    <span class="font-medium">{{ activity.customer.user.get_full_name|default:activity.customer.user.username }}</span> đã đánh giá sản phẩm <a href="{% url 'admin_product_detail' activity.reference_id %}" class="text-primary-600">{{ activity.reference_name }}</a>
+                                {% elif activity.activity_type == 'wishlist' %}
+                                    <span class="font-medium">{{ activity.customer.user.get_full_name|default:activity.customer.user.username }}</span> đã thêm sản phẩm <a href="{% url 'admin_product_detail' activity.reference_id %}" class="text-primary-600">{{ activity.reference_name }}</a> vào danh sách yêu thích
+                                {% endif %}
+                            </p>
+                            <p class="text-sm text-gray-500 truncate">
+                                {{ activity.created_at|date:"d/m/Y H:i" }}
+                            </p>
+                        </div>
+                    </div>
+                </li>
+                {% empty %}
+                <li class="py-4 text-center text-gray-500">
+                    Không có hoạt động nào gần đây
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script>
+    // Revenue Chart
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    const revenueChart = new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: {{ months|safe }},
+            datasets: [{
+                label: 'Doanh thu (triệu VND)',
+                data: {{ revenue_data|safe }},
+                backgroundColor: 'rgba(20, 184, 166, 0.2)',
+                borderColor: 'rgb(20, 184, 166)',
+                borderWidth: 2,
+                tension: 0.3,
+                pointBackgroundColor: 'rgb(20, 184, 166)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' ₫';
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+    
+    // Order Status Chart
+    const orderStatusCtx = document.getElementById('orderStatusChart').getContext('2d');
+    const orderStatusChart = new Chart(orderStatusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Chờ xác nhận', 'Đang xử lý', 'Đang giao hàng', 'Đã giao hàng', 'Đã hủy'],
+            datasets: [{
+                data: {{ order_status_data|safe }},
+                backgroundColor: [
+                    '#FCD34D', // yellow for pending
+                    '#60A5FA', // blue for processing
+                    '#A78BFA', // purple for shipped
+                    '#34D399', // green for delivered
+                    '#F87171'  // red for cancelled
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right'
+                }
+            },
+            cutout: '70%'
+        }
+    });
+</script>
+{% endblock %} 

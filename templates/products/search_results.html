@@ -1,0 +1,202 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Kết quả tìm kiếm: "{{ query }}" - FShop{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 py-8">
+    <div class="container mx-auto px-4">
+        <!-- Breadcrumbs -->
+        <nav class="text-sm mb-6">
+            <ol class="list-none p-0 inline-flex text-gray-600">
+                <li class="flex items-center">
+                    <a href="{% url 'home' %}" class="hover:text-amber-600">Trang chủ</a>
+                    <svg class="w-3 h-3 mx-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                </li>
+                <li class="flex items-center">
+                    Kết quả tìm kiếm
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Search Results Header -->
+        <div class="bg-white rounded-lg shadow mb-6 p-6">
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">Kết quả tìm kiếm cho "{{ query }}"</h1>
+            <p class="text-gray-600">Tìm thấy {{ products|length }} sản phẩm</p>
+        </div>
+
+        <!-- Products Grid -->
+        {% if products %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {% for product in products %}
+                    <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
+                        <a href="{{ product.get_absolute_url }}">
+                            <div class="aspect-w-1 aspect-h-1 w-full">
+                                <img 
+                                    src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'images/no-image.png' %}{% endif %}" 
+                                    alt="{{ product.name }}" 
+                                    class="object-cover w-full h-48"
+                                    onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80';this.onerror='';">
+                            </div>
+                            <div class="p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs font-medium text-gray-500">{{ product.category.name }}</span>
+                                    <span class="text-xs font-medium text-gray-500">{{ product.get_material_display }}</span>
+                                </div>
+                                <h3 class="text-lg font-medium text-gray-800 mb-2 truncate">{{ product.name }}</h3>
+                                <p class="text-gray-500 text-sm mb-2">{{ product.get_room_type_display }}</p>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-amber-600 font-bold">{{ product.price|floatformat:0 }} ₫</span>
+                                    <span class="text-xs text-gray-500">
+                                        {% if product.stock > 0 %}
+                                            <span class="text-green-600">Còn hàng</span>
+                                        {% else %}
+                                            <span class="text-red-600">Hết hàng</span>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+                        <div class="px-4 pb-4">
+                            <div class="flex space-x-2">
+                                <button data-product-id="{{ product.id }}" class="add-to-cart w-full bg-amber-600 hover:bg-amber-700 text-white rounded-md py-2 transition duration-300 flex items-center justify-center">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z"></path>
+                                    </svg>
+                                    Thêm vào giỏ
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- Empty Search Results -->
+            <div class="bg-white rounded-lg shadow p-8 text-center">
+                <div class="mb-4">
+                    <svg class="w-16 h-16 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-xl font-semibold text-gray-800 mb-2">Không tìm thấy sản phẩm phù hợp</h2>
+                <p class="text-gray-600 mb-6">Rất tiếc, chúng tôi không tìm thấy sản phẩm nào phù hợp với từ khóa "{{ query }}".</p>
+                
+                <div class="space-y-4">
+                    <p class="text-gray-700 font-medium">Bạn có thể thử:</p>
+                    <ul class="text-gray-600 space-y-2">
+                        <li>• Kiểm tra lại chính tả của từ khóa tìm kiếm</li>
+                        <li>• Sử dụng các từ khóa ngắn hơn</li>
+                        <li>• Tìm kiếm với từ khóa chung hơn</li>
+                    </ul>
+                </div>
+                
+                <div class="mt-8">
+                    <a href="{% url 'product_list' %}" class="inline-block bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-6 rounded-md transition duration-300">
+                        Xem tất cả sản phẩm
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Suggested Categories -->
+            <div class="mt-8">
+                <h2 class="text-xl font-bold text-gray-800 mb-6">Danh mục phổ biến</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <a href="{% url 'product_list_by_room' 'LR' %}" class="bg-white rounded-lg shadow p-4 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
+                        <i class="fas fa-couch text-3xl text-amber-600 mb-2"></i>
+                        <span class="text-gray-800 font-medium">Phòng khách</span>
+                    </a>
+                    <a href="{% url 'product_list_by_room' 'BR' %}" class="bg-white rounded-lg shadow p-4 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
+                        <i class="fas fa-bed text-3xl text-amber-600 mb-2"></i>
+                        <span class="text-gray-800 font-medium">Phòng ngủ</span>
+                    </a>
+                    <a href="{% url 'product_list_by_room' 'KT' %}" class="bg-white rounded-lg shadow p-4 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
+                        <i class="fas fa-utensils text-3xl text-amber-600 mb-2"></i>
+                        <span class="text-gray-800 font-medium">Nhà bếp</span>
+                    </a>
+                    <a href="{% url 'product_list_by_room' 'OF' %}" class="bg-white rounded-lg shadow p-4 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
+                        <i class="fas fa-desk text-3xl text-amber-600 mb-2"></i>
+                        <span class="text-gray-800 font-medium">Văn phòng</span>
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add to cart functionality
+    const addToCartButtons = document.querySelectorAll('.add-to-cart');
+    addToCartButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const productId = this.dataset.productId;
+            
+            // Send AJAX request to add item to cart
+            fetch('/cart/add/' + productId + '/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    quantity: 1,
+                    update: false
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update cart count in header
+                    const cartCount = document.getElementById('cart-count');
+                    if (cartCount) {
+                        cartCount.textContent = data.total_items;
+                    }
+                    
+                    // Show notification
+                    showNotification('Đã thêm sản phẩm vào giỏ hàng!', 'success');
+                } else {
+                    showNotification(data.error, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Có lỗi xảy ra, vui lòng thử lại!', 'error');
+            });
+        });
+    });
+    
+    // Helper function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Show notification function
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `fixed bottom-4 right-4 py-2 px-4 rounded-md text-white ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} shadow-lg z-50`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+});
+</script>
+{% endblock %}
+{% endblock %} 

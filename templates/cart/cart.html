@@ -1,0 +1,525 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Giỏ hàng - FShop{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 py-8">
+    <div class="container mx-auto px-4">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Giỏ hàng của bạn</h1>
+        
+        {% if cart_items %}
+            <div class="flex flex-col lg:flex-row gap-6">
+                <!-- Cart Items -->
+                <div class="w-full lg:w-2/3">
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <!-- Table Header - Only visible on desktop -->
+                        <div class="hidden md:grid md:grid-cols-12 gap-4 px-6 py-4 border-b border-gray-200 bg-gray-50">
+                            <div class="col-span-6">
+                                <h2 class="text-sm font-medium text-gray-500">Sản phẩm</h2>
+                            </div>
+                            <div class="col-span-2 text-center">
+                                <h2 class="text-sm font-medium text-gray-500">Đơn giá</h2>
+                            </div>
+                            <div class="col-span-2 text-center">
+                                <h2 class="text-sm font-medium text-gray-500">Số lượng</h2>
+                            </div>
+                            <div class="col-span-2 text-right">
+                                <h2 class="text-sm font-medium text-gray-500">Thành tiền</h2>
+                            </div>
+                        </div>
+                        
+                        <!-- Cart Items -->
+                        <div class="divide-y divide-gray-200">
+                            {% for item in cart_items %}
+                                <div class="p-6 md:grid md:grid-cols-12 md:gap-4 flex flex-wrap">
+                                    <!-- Product Info -->
+                                    <div class="col-span-6 flex">
+                                        <div class="flex-shrink-0 w-20 h-20">
+                                            {% if item.product.images.first %}
+                                                <img src="{{ item.product.images.first.image.url }}" alt="{{ item.product.name }}" class="w-full h-full object-cover rounded-md">
+                                            {% else %}
+                                                <div class="w-full h-full bg-gray-100 flex items-center justify-center rounded-md">
+                                                    <i class="fas fa-image text-gray-400 text-2xl"></i>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="ml-4 flex flex-col">
+                                            <a href="{% url 'product_detail' item.product.slug %}" class="text-gray-800 font-medium hover:text-amber-600">
+                                                {{ item.product.name }}
+                                            </a>
+                                            <p class="text-gray-500 text-sm">
+                                                Màu: {{ item.color|default:"N/A" }}
+                                            </p>
+                                            <div class="mt-auto md:hidden flex items-center">
+                                                <button data-item-id="{{ item.id }}" class="remove-item text-red-500 hover:text-red-700 text-sm">
+                                                    <i class="fas fa-trash-alt mr-1"></i> Xóa
+                                                </button>
+                                                <button data-product-id="{{ item.product.id }}" class="save-for-later ml-4 text-amber-600 hover:text-amber-800 text-sm">
+                                                    <i class="fas fa-heart mr-1"></i> Lưu
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Price -->
+                                    <div class="col-span-2 flex flex-col justify-center items-center mt-4 md:mt-0">
+                                        {% if item.product.discount_price %}
+                                            <p class="text-gray-800 font-medium">{{ item.product.discount_price|floatformat:0 }} ₫</p>
+                                            <p class="text-gray-400 text-sm line-through">{{ item.product.price|floatformat:0 }} ₫</p>
+                                        {% else %}
+                                            <p class="text-gray-800 font-medium">{{ item.product.price|floatformat:0 }} ₫</p>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Quantity -->
+                                    <div class="col-span-2 flex justify-center items-center mt-4 md:mt-0">
+                                        <div class="flex items-center border border-gray-300 rounded-md">
+                                            <button data-item-id="{{ item.id }}" class="decrease-quantity px-3 py-1 text-gray-600 hover:bg-gray-100">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                            <input type="text" value="{{ item.quantity }}" data-item-id="{{ item.id }}" class="quantity-input w-12 text-center border-x border-gray-300 py-1" min="1" max="{{ item.product.stock }}">
+                                            <button data-item-id="{{ item.id }}" class="increase-quantity px-3 py-1 text-gray-600 hover:bg-gray-100">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Subtotal -->
+                                    <div class="col-span-2 flex flex-col justify-center items-end mt-4 md:mt-0">
+                                        <p class="text-gray-800 font-medium">{{ item.subtotal|floatformat:0 }} ₫</p>
+                                        
+                                        <!-- Action Buttons - Only visible on desktop -->
+                                        <div class="mt-2 hidden md:flex items-center">
+                                            <button data-item-id="{{ item.id }}" class="remove-item text-red-500 hover:text-red-700 text-sm">
+                                                <i class="fas fa-trash-alt mr-1"></i> Xóa
+                                            </button>
+                                            <button data-product-id="{{ item.product.id }}" class="save-for-later ml-4 text-amber-600 hover:text-amber-800 text-sm">
+                                                <i class="fas fa-heart mr-1"></i> Lưu
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Cart Actions -->
+                        <div class="p-6 border-t border-gray-200 bg-gray-50 flex flex-wrap justify-between items-center">
+                            <a href="{% url 'homepage' %}" class="text-amber-600 hover:text-amber-800">
+                                <i class="fas fa-arrow-left mr-1"></i> Tiếp tục mua sắm
+                            </a>
+                            <button id="clear-cart" class="text-gray-600 hover:text-gray-800">
+                                <i class="fas fa-trash-alt mr-1"></i> Xóa giỏ hàng
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Order Summary -->
+                <div class="w-full lg:w-1/3">
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="p-6 border-b border-gray-200">
+                            <h2 class="text-lg font-semibold text-gray-800 mb-4">Tóm tắt đơn hàng</h2>
+                            
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Tạm tính ({{ cart_items|length }} sản phẩm)</span>
+                                    <span class="text-gray-800 font-medium">{{ subtotal|floatformat:0 }} ₫</span>
+                                </div>
+                                
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Giảm giá</span>
+                                    <span class="text-gray-800 font-medium">-{{ discount|floatformat:0 }} ₫</span>
+                                </div>
+                                
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Phí vận chuyển</span>
+                                    <span class="text-gray-800 font-medium">{{ shipping_fee|floatformat:0 }} ₫</span>
+                                </div>
+                                
+                                <div class="border-t border-gray-200 pt-3 mt-3">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-800 font-semibold">Tổng cộng</span>
+                                        <span class="text-gray-800 font-bold text-lg">{{ total|floatformat:0 }} ₫</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Coupon Code -->
+                        <div class="p-6 border-b border-gray-200">
+                            <h3 class="text-gray-800 font-medium mb-3">Mã giảm giá</h3>
+                            <div class="flex">
+                                <input type="text" id="coupon-code" placeholder="Nhập mã giảm giá" class="flex-1 border border-gray-300 rounded-l-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+                                <button id="apply-coupon" class="bg-amber-600 text-white rounded-r-md px-4 py-2 hover:bg-amber-700 transition duration-300">
+                                    Áp dụng
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="p-6">
+                            <a href="{% url 'checkout' %}" class="block w-full bg-amber-600 text-white text-center py-3 px-4 rounded-md hover:bg-amber-700 transition duration-300">
+                                Tiến hành thanh toán
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Shipping Info Card -->
+                    <div class="mt-6 bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="p-6">
+                            <h3 class="text-gray-800 font-medium mb-3">Thông tin vận chuyển</h3>
+                            <ul class="space-y-3">
+                                <li class="flex items-start">
+                                    <i class="fas fa-truck text-amber-600 mt-1 mr-3"></i>
+                                    <div>
+                                        <p class="text-gray-600">Miễn phí vận chuyển cho đơn hàng từ 1.000.000₫</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-box-open text-amber-600 mt-1 mr-3"></i>
+                                    <div>
+                                        <p class="text-gray-600">Đổi trả miễn phí trong vòng 30 ngày</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-shield-alt text-amber-600 mt-1 mr-3"></i>
+                                    <div>
+                                        <p class="text-gray-600">Bảo hành chính hãng 12 tháng</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="bg-white rounded-lg shadow-md overflow-hidden p-8 text-center">
+                <div class="inline-block p-6 bg-gray-100 rounded-full mb-6">
+                    <i class="fas fa-shopping-cart text-gray-400 text-5xl"></i>
+                </div>
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Giỏ hàng của bạn đang trống</h2>
+                <p class="text-gray-600 mb-6">Hãy thêm sản phẩm vào giỏ hàng và quay lại để tiếp tục.</p>
+                <a href="{% url 'homepage' %}" class="inline-block bg-amber-600 text-white py-3 px-6 rounded-md hover:bg-amber-700 transition duration-300">
+                    Tiếp tục mua sắm
+                </a>
+            </div>
+        {% endif %}
+        
+        <!-- Saved For Later -->
+        {% if saved_items %}
+            <div class="mt-8">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Sản phẩm đã lưu</h2>
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
+                        {% for item in saved_items %}
+                            <div class="border border-gray-200 rounded-lg overflow-hidden flex flex-col">
+                                <div class="h-48 w-full overflow-hidden">
+                                    {% if item.product.images.first %}
+                                        <img src="{{ item.product.images.first.image.url }}" alt="{{ item.product.name }}" class="w-full h-full object-cover">
+                                    {% else %}
+                                        <div class="w-full h-full bg-gray-100 flex items-center justify-center">
+                                            <i class="fas fa-image text-gray-400 text-2xl"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="p-4 flex-1 flex flex-col">
+                                    <h3 class="text-gray-800 font-medium mb-2 line-clamp-2">{{ item.product.name }}</h3>
+                                    <div class="mb-3">
+                                        {% if item.product.discount_price %}
+                                            <p class="text-gray-800 font-medium">{{ item.product.discount_price|floatformat:0 }} ₫</p>
+                                            <p class="text-gray-400 text-sm line-through">{{ item.product.price|floatformat:0 }} ₫</p>
+                                        {% else %}
+                                            <p class="text-gray-800 font-medium">{{ item.product.price|floatformat:0 }} ₫</p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mt-auto flex space-x-2">
+                                        <button data-product-id="{{ item.product.id }}" class="move-to-cart flex-1 bg-amber-600 text-white py-2 rounded-md hover:bg-amber-700 transition duration-300 text-sm">
+                                            Thêm vào giỏ
+                                        </button>
+                                        <button data-item-id="{{ item.id }}" class="remove-saved flex-shrink-0 bg-gray-200 text-gray-600 p-2 rounded-md hover:bg-gray-300 transition duration-300">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Update quantity with AJAX
+        const quantityInputs = document.querySelectorAll('.quantity-input');
+        quantityInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                const itemId = this.dataset.itemId;
+                const quantity = this.value;
+                
+                updateCartItemQuantity(itemId, quantity);
+            });
+        });
+        
+        // Decrease quantity
+        const decreaseButtons = document.querySelectorAll('.decrease-quantity');
+        decreaseButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const itemId = this.dataset.itemId;
+                const input = document.querySelector(`.quantity-input[data-item-id="${itemId}"]`);
+                if (input.value > 1) {
+                    input.value = parseInt(input.value) - 1;
+                    updateCartItemQuantity(itemId, input.value);
+                }
+            });
+        });
+        
+        // Increase quantity
+        const increaseButtons = document.querySelectorAll('.increase-quantity');
+        increaseButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const itemId = this.dataset.itemId;
+                const input = document.querySelector(`.quantity-input[data-item-id="${itemId}"]`);
+                input.value = parseInt(input.value) + 1;
+                updateCartItemQuantity(itemId, input.value);
+            });
+        });
+        
+        // Remove item
+        const removeButtons = document.querySelectorAll('.remove-item');
+        removeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const itemId = this.dataset.itemId;
+                if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+                    removeCartItem(itemId);
+                }
+            });
+        });
+        
+        // Clear cart
+        const clearCartButton = document.getElementById('clear-cart');
+        if (clearCartButton) {
+            clearCartButton.addEventListener('click', function() {
+                if (confirm('Bạn có chắc chắn muốn xóa tất cả sản phẩm trong giỏ hàng?')) {
+                    clearCart();
+                }
+            });
+        }
+        
+        // Save for later
+        const saveButtons = document.querySelectorAll('.save-for-later');
+        saveButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const productId = this.dataset.productId;
+                const itemId = this.closest('[data-item-id]').dataset.itemId;
+                saveForLater(productId, itemId);
+            });
+        });
+        
+        // Move to cart
+        const moveToCartButtons = document.querySelectorAll('.move-to-cart');
+        moveToCartButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const productId = this.dataset.productId;
+                moveToCart(productId);
+            });
+        });
+        
+        // Remove saved item
+        const removeSavedButtons = document.querySelectorAll('.remove-saved');
+        removeSavedButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const itemId = this.dataset.itemId;
+                if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi danh sách đã lưu?')) {
+                    removeSavedItem(itemId);
+                }
+            });
+        });
+        
+        // Apply coupon
+        const applyCouponButton = document.getElementById('apply-coupon');
+        if (applyCouponButton) {
+            applyCouponButton.addEventListener('click', function() {
+                const couponCode = document.getElementById('coupon-code').value;
+                if (couponCode.trim() !== '') {
+                    applyCoupon(couponCode);
+                }
+            });
+        }
+        
+        // AJAX Functions
+        function updateCartItemQuantity(itemId, quantity) {
+            fetch('/cart/update/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    item_id: itemId,
+                    quantity: quantity
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        
+        function removeCartItem(itemId) {
+            fetch('/cart/remove/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    item_id: itemId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        
+        function clearCart() {
+            fetch('/cart/clear/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        
+        function saveForLater(productId, itemId) {
+            fetch('/cart/save-for-later/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    product_id: productId,
+                    item_id: itemId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        
+        function moveToCart(productId) {
+            fetch('/cart/move-to-cart/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    product_id: productId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        
+        function removeSavedItem(itemId) {
+            fetch('/cart/remove-saved/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    item_id: itemId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        
+        function applyCoupon(couponCode) {
+            fetch('/cart/apply-coupon/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    coupon_code: couponCode
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        
+        // Helper function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    });
+</script>
+{% endblock %} 

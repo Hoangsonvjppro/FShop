@@ -1,0 +1,335 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} - FShop{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 py-8">
+    <div class="container mx-auto px-4">
+        <!-- Breadcrumbs -->
+        <nav class="text-sm mb-6">
+            <ol class="list-none p-0 inline-flex text-gray-600">
+                <li class="flex items-center">
+                    <a href="{% url 'home' %}" class="hover:text-amber-600">Trang chủ</a>
+                    <svg class="w-3 h-3 mx-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                </li>
+                <li class="flex items-center">
+                    <a href="{{ product.category.get_absolute_url }}" class="hover:text-amber-600">{{ product.category.name }}</a>
+                    <svg class="w-3 h-3 mx-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                </li>
+                <li class="flex items-center">
+                    {{ product.name }}
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Product Detail -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="flex flex-col md:flex-row">
+                <!-- Product Images -->
+                <div class="md:w-1/2 p-4">
+                    <div class="mb-4">
+                        <img 
+                            id="main-image"
+                            src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'images/no-image.png' %}{% endif %}" 
+                            alt="{{ product.name }}" 
+                            class="w-full h-auto object-cover rounded-lg"
+                            style="max-height: 400px;"
+                            onerror="this.src='https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80';this.onerror='';">
+                    </div>
+                    
+                    <!-- Thumbnail Gallery -->
+                    {% if product_images %}
+                    <div class="grid grid-cols-5 gap-2">
+                        <div class="col-span-1">
+                            <img 
+                                src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'images/no-image.png' %}{% endif %}" 
+                                alt="{{ product.name }}" 
+                                class="w-full h-20 object-cover rounded cursor-pointer thumbnail active"
+                                onclick="changeMainImage(this.src)"
+                                onerror="this.src='https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80';this.onerror='';">
+                        </div>
+                        {% for image in product_images %}
+                        <div class="col-span-1">
+                            <img 
+                                src="{{ image.image.url }}" 
+                                alt="{{ product.name }}" 
+                                class="w-full h-20 object-cover rounded cursor-pointer thumbnail"
+                                onclick="changeMainImage(this.src)">
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Product Info -->
+                <div class="md:w-1/2 p-6">
+                    <div class="mb-4">
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">{{ product.name }}</h1>
+                        <div class="flex items-center mb-2">
+                            <span class="bg-amber-100 text-amber-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">{{ product.get_room_type_display }}</span>
+                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">{{ product.get_material_display }}</span>
+                        </div>
+                        <div class="flex items-center text-gray-500 text-sm">
+                            <span>Thương hiệu: <a href="{% url 'product_list_by_brand' product.brand.slug %}" class="text-amber-600 hover:underline">{{ product.brand.name }}</a></span>
+                            <span class="mx-2">|</span>
+                            <span>Mã SP: {{ product.id }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="text-3xl font-bold text-amber-600 mb-2">
+                            {{ product.price|floatformat:0 }} ₫
+                        </div>
+                        <div class="flex items-center text-sm text-gray-500">
+                            <span class="{% if product.stock > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                                {% if product.stock > 0 %}
+                                    <i class="fas fa-check-circle mr-1"></i> Còn hàng
+                                {% else %}
+                                    <i class="fas fa-times-circle mr-1"></i> Hết hàng
+                                {% endif %}
+                            </span>
+                            <span class="mx-2">|</span>
+                            <span><i class="fas fa-shield-alt mr-1"></i> Bảo hành {{ product.warranty }} tháng</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Product Details -->
+                    <div class="mb-6">
+                        <h2 class="font-semibold text-gray-700 mb-2">Thông tin chi tiết:</h2>
+                        <ul class="space-y-1 text-gray-600">
+                            <li><span class="inline-block w-32">Loại phòng:</span> {{ product.get_room_type_display }}</li>
+                            <li><span class="inline-block w-32">Chất liệu:</span> {{ product.get_material_display }}</li>
+                            {% if product.dimensions %}
+                            <li><span class="inline-block w-32">Kích thước:</span> {{ product.dimensions }}</li>
+                            {% endif %}
+                            {% if product.weight %}
+                            <li><span class="inline-block w-32">Trọng lượng:</span> {{ product.weight }} kg</li>
+                            {% endif %}
+                            <li><span class="inline-block w-32">Bảo hành:</span> {{ product.warranty }} tháng</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Add to Cart Form -->
+                    <form method="post" action="{% url 'cart_add' product.id %}" class="mb-6" id="add-to-cart-form">
+                        {% csrf_token %}
+                        <div class="flex items-center mb-4">
+                            <label for="quantity" class="mr-4 text-gray-700">Số lượng:</label>
+                            <div class="custom-number-input h-10 w-32">
+                                <div class="flex flex-row h-10 w-full rounded-lg relative bg-transparent">
+                                    <button type="button" data-action="decrement" class="bg-gray-200 text-gray-600 hover:text-gray-700 hover:bg-gray-300 h-full w-20 rounded-l cursor-pointer outline-none">
+                                        <span class="m-auto text-2xl font-thin">−</span>
+                                    </button>
+                                    <input type="number" id="quantity" name="quantity" class="outline-none focus:outline-none text-center w-full bg-gray-100 font-semibold text-md hover:text-black focus:text-black flex items-center text-gray-700" name="custom-input-number" value="1" min="1" max="{{ product.stock }}">
+                                    <button type="button" data-action="increment" class="bg-gray-200 text-gray-600 hover:text-gray-700 hover:bg-gray-300 h-full w-20 rounded-r cursor-pointer">
+                                        <span class="m-auto text-2xl font-thin">+</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex space-x-2">
+                            <button type="submit" class="flex-1 bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-md transition duration-300 flex items-center justify-center" {% if not product.available or product.stock <= 0 %}disabled{% endif %}>
+                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z"></path>
+                                </svg>
+                                Thêm vào giỏ hàng
+                            </button>
+                            <button type="button" class="bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-4 rounded-md transition duration-300">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 3.22l-.61-.6a5.5 5.5 0 00-7.78 7.77L10 18.78l8.39-8.4a5.5 5.5 0 00-7.78-7.77l-.61.61z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- Delivery Options -->
+                    <div class="mb-6">
+                        <h2 class="font-semibold text-gray-700 mb-2">Chính sách mua hàng:</h2>
+                        <ul class="space-y-2 text-gray-600">
+                            <li class="flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span>Miễn phí giao hàng cho đơn hàng từ 1.000.000₫</span>
+                            </li>
+                            <li class="flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span>Đổi trả miễn phí trong vòng 30 ngày</span>
+                            </li>
+                            <li class="flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span>Bảo hành chính hãng {{ product.warranty }} tháng</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Product Description and Tabs -->
+            <div class="border-t border-gray-200 p-6">
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Mô tả sản phẩm</h2>
+                    <div class="prose prose-amber max-w-none text-gray-600">
+                        {% if product.description %}
+                            <p>{{ product.description|linebreaks }}</p>
+                        {% else %}
+                            <p>Chưa có mô tả chi tiết cho sản phẩm này.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Related Products -->
+        {% if related_products %}
+        <div class="mt-12">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Sản phẩm tương tự</h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {% for product in related_products %}
+                    <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
+                        <a href="{{ product.get_absolute_url }}">
+                            <div class="aspect-w-1 aspect-h-1 w-full">
+                                <img 
+                                    src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'images/no-image.png' %}{% endif %}" 
+                                    alt="{{ product.name }}" 
+                                    class="object-cover w-full h-48"
+                                    onerror="this.src='https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80';this.onerror='';">
+                            </div>
+                            <div class="p-4">
+                                <h3 class="text-lg font-medium text-gray-800 mb-2 truncate">{{ product.name }}</h3>
+                                <p class="text-gray-500 text-sm mb-2">{{ product.get_room_type_display }} | {{ product.get_material_display }}</p>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-amber-600 font-bold">{{ product.price|floatformat:0 }} ₫</span>
+                                    <span class="text-xs text-gray-500">{{ product.warranty }} tháng BH</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Quantity increment/decrement
+    const incrementButton = document.querySelector('[data-action="increment"]');
+    const decrementButton = document.querySelector('[data-action="decrement"]');
+    const quantityInput = document.getElementById('quantity');
+    
+    incrementButton.addEventListener('click', function() {
+        const currentValue = parseInt(quantityInput.value);
+        const maxValue = parseInt(quantityInput.max);
+        if (currentValue < maxValue) {
+            quantityInput.value = currentValue + 1;
+        }
+    });
+    
+    decrementButton.addEventListener('click', function() {
+        const currentValue = parseInt(quantityInput.value);
+        if (currentValue > 1) {
+            quantityInput.value = currentValue - 1;
+        }
+    });
+    
+    // Form submission with AJAX
+    const addToCartForm = document.getElementById('add-to-cart-form');
+    addToCartForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        fetch(this.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams(new FormData(this))
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update cart count in header
+                const cartCount = document.getElementById('cart-count');
+                if (cartCount) {
+                    cartCount.textContent = data.total_items;
+                }
+                
+                // Show notification
+                showNotification('Đã thêm sản phẩm vào giỏ hàng!', 'success');
+            } else {
+                showNotification(data.error, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Có lỗi xảy ra, vui lòng thử lại!', 'error');
+        });
+    });
+    
+    // Show notification function
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `fixed bottom-4 right-4 py-2 px-4 rounded-md text-white ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} shadow-lg z-50`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+    
+    // Image gallery functionality
+    function changeMainImage(src) {
+        document.getElementById('main-image').src = src;
+        
+        // Update active thumbnail
+        document.querySelectorAll('.thumbnail').forEach(thumb => {
+            thumb.classList.remove('ring', 'ring-amber-500');
+        });
+        
+        // Add active class to clicked thumbnail
+        event.target.classList.add('ring', 'ring-amber-500');
+    }
+    
+    // Make thumbnails clickable
+    document.querySelectorAll('.thumbnail').forEach(thumb => {
+        thumb.addEventListener('click', function() {
+            changeMainImage(this.src);
+        });
+    });
+    
+    // Initialize the first thumbnail as active
+    if (document.querySelector('.thumbnail')) {
+        document.querySelector('.thumbnail').classList.add('ring', 'ring-amber-500');
+    }
+});
+
+// Function to change main image
+function changeMainImage(src) {
+    document.getElementById('main-image').src = src;
+    
+    // Update active thumbnail
+    document.querySelectorAll('.thumbnail').forEach(thumb => {
+        if (thumb.src === src) {
+            thumb.classList.add('ring', 'ring-amber-500');
+        } else {
+            thumb.classList.remove('ring', 'ring-amber-500');
+        }
+    });
+}
+</script>
+{% endblock %}
+{% endblock %} 

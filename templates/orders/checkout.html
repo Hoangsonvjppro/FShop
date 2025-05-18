@@ -1,0 +1,525 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Thanh toán - FShop{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 py-8">
+    <div class="container mx-auto px-4">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Thanh toán</h1>
+        
+        <!-- Checkout Steps -->
+        <div class="flex items-center justify-between mb-8 px-4 py-2 bg-white rounded-lg shadow-sm">
+            <div class="flex-1 text-center">
+                <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-600 text-white font-medium text-sm">1</div>
+                <span class="block mt-1 text-sm text-gray-800 font-medium">Giỏ hàng</span>
+            </div>
+            <div class="w-20 h-1 bg-amber-600"></div>
+            <div class="flex-1 text-center">
+                <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-600 text-white font-medium text-sm">2</div>
+                <span class="block mt-1 text-sm text-gray-800 font-medium">Thanh toán</span>
+            </div>
+            <div class="w-20 h-1 bg-gray-300"></div>
+            <div class="flex-1 text-center">
+                <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-300 text-gray-500 font-medium text-sm">3</div>
+                <span class="block mt-1 text-sm text-gray-500">Hoàn tất</span>
+            </div>
+        </div>
+        
+        <form method="post" action="{% url 'checkout' %}" id="checkout-form">
+            {% csrf_token %}
+            
+            <div class="flex flex-col lg:flex-row gap-6">
+                <!-- Left Column: Customer Information -->
+                <div class="w-full lg:w-2/3 space-y-6">
+                    <!-- Delivery Address -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="p-6">
+                            <h2 class="text-lg font-semibold text-gray-800 mb-4">Địa chỉ giao hàng</h2>
+                            
+                            <!-- Saved Addresses (if logged in) -->
+                            {% if user.is_authenticated and addresses %}
+                                <div class="mb-6">
+                                    <label class="block text-gray-700 font-medium mb-2">Chọn địa chỉ có sẵn</label>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {% for address in addresses %}
+                                            <div class="border border-gray-200 rounded-md p-4 hover:border-amber-600 cursor-pointer relative {% if forloop.first %}border-amber-600 bg-amber-50{% endif %}"
+                                                 data-address-id="{{ address.id }}">
+                                                <input type="radio" name="address_id" value="{{ address.id }}" class="hidden" 
+                                                       {% if forloop.first %}checked{% endif %}>
+                                                <div class="mb-1 font-medium">{{ address.full_name }}</div>
+                                                <div class="text-gray-600 text-sm">{{ address.phone }}</div>
+                                                <div class="text-gray-600 text-sm">{{ address.get_full_address }}</div>
+                                                {% if address.is_default %}
+                                                    <div class="absolute top-2 right-2 bg-amber-600 text-white text-xs px-2 py-1 rounded">Mặc định</div>
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                        
+                                        <!-- New Address Option -->
+                                        <div class="border border-gray-200 rounded-md p-4 hover:border-amber-600 cursor-pointer flex items-center justify-center"
+                                             id="new-address-option">
+                                            <i class="fas fa-plus text-amber-600 mr-2"></i>
+                                            <span class="text-amber-600">Thêm địa chỉ mới</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- New Address Form -->
+                            <div id="new-address-form" {% if user.is_authenticated and addresses %}class="hidden"{% endif %}>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="full_name" class="block text-gray-700 font-medium mb-2">Họ tên</label>
+                                        <input type="text" id="full_name" name="full_name" required 
+                                               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                                               value="{{ user.get_full_name }}" placeholder="Nguyễn Văn A">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="phone" class="block text-gray-700 font-medium mb-2">Số điện thoại</label>
+                                        <input type="tel" id="phone" name="phone" required 
+                                               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                                               value="{{ customer.phone|default:'' }}" placeholder="0912345678">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="province" class="block text-gray-700 font-medium mb-2">Tỉnh/Thành phố</label>
+                                        <select id="province" name="province" required 
+                                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+                                            <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                                            <!-- Province options will be loaded via JavaScript -->
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="district" class="block text-gray-700 font-medium mb-2">Quận/Huyện</label>
+                                        <select id="district" name="district" required 
+                                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" disabled>
+                                            <option value="">-- Chọn Quận/Huyện --</option>
+                                            <!-- District options will be loaded via JavaScript -->
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="ward" class="block text-gray-700 font-medium mb-2">Phường/Xã</label>
+                                        <select id="ward" name="ward" required 
+                                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" disabled>
+                                            <option value="">-- Chọn Phường/Xã --</option>
+                                            <!-- Ward options will be loaded via JavaScript -->
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="street" class="block text-gray-700 font-medium mb-2">Địa chỉ cụ thể</label>
+                                        <input type="text" id="street" name="street" required 
+                                               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                                               placeholder="Số nhà, tên đường">
+                                    </div>
+                                    
+                                    <!-- Save Address Option (if logged in) -->
+                                    {% if user.is_authenticated %}
+                                        <div class="md:col-span-2">
+                                            <div class="flex items-center">
+                                                <input type="checkbox" id="save_address" name="save_address" class="h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded">
+                                                <label for="save_address" class="ml-2 block text-sm text-gray-700">Lưu địa chỉ này cho lần sau</label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="md:col-span-2" id="default-address-option" style="display:none;">
+                                            <div class="flex items-center">
+                                                <input type="checkbox" id="default_address" name="default_address" class="h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded">
+                                                <label for="default_address" class="ml-2 block text-sm text-gray-700">Đặt làm địa chỉ mặc định</label>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <!-- Cancel Button (shown only when editing) -->
+                                    {% if user.is_authenticated and addresses %}
+                                        <div class="md:col-span-2 text-right">
+                                            <button type="button" id="cancel-new-address" class="text-gray-600 hover:text-gray-800">
+                                                <i class="fas fa-times mr-1"></i> Hủy
+                                            </button>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Delivery Method -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="p-6">
+                            <h2 class="text-lg font-semibold text-gray-800 mb-4">Phương thức giao hàng</h2>
+                            
+                            <div class="space-y-3">
+                                <div class="border border-gray-200 rounded-md p-4 hover:border-amber-600 cursor-pointer relative border-amber-600 bg-amber-50">
+                                    <input type="radio" name="shipping_method" value="standard" checked class="hidden">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="mb-1 font-medium">Giao hàng tiêu chuẩn</div>
+                                            <div class="text-gray-600 text-sm">Nhận hàng trong 3-5 ngày</div>
+                                        </div>
+                                        <div class="text-gray-800 font-medium">{{ shipping_fee|floatformat:0 }} ₫</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="border border-gray-200 rounded-md p-4 hover:border-amber-600 cursor-pointer relative">
+                                    <input type="radio" name="shipping_method" value="express" class="hidden">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="mb-1 font-medium">Giao hàng nhanh</div>
+                                            <div class="text-gray-600 text-sm">Nhận hàng trong 1-2 ngày</div>
+                                        </div>
+                                        <div class="text-gray-800 font-medium">50,000 ₫</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Method -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="p-6">
+                            <h2 class="text-lg font-semibold text-gray-800 mb-4">Phương thức thanh toán</h2>
+                            
+                            <div class="space-y-3">
+                                <div class="border border-gray-200 rounded-md p-4 hover:border-amber-600 cursor-pointer relative border-amber-600 bg-amber-50">
+                                    <input type="radio" name="payment_method" value="cod" checked class="hidden">
+                                    <div class="flex items-center">
+                                        <div class="w-12 h-12 flex items-center justify-center bg-gray-100 rounded-md">
+                                            <i class="fas fa-money-bill-wave text-gray-600 text-xl"></i>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="font-medium">Thanh toán khi nhận hàng (COD)</div>
+                                            <div class="text-gray-600 text-sm">Thanh toán bằng tiền mặt khi nhận hàng</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="border border-gray-200 rounded-md p-4 hover:border-amber-600 cursor-pointer relative">
+                                    <input type="radio" name="payment_method" value="bank_transfer" class="hidden">
+                                    <div class="flex items-center">
+                                        <div class="w-12 h-12 flex items-center justify-center bg-gray-100 rounded-md">
+                                            <i class="fas fa-university text-gray-600 text-xl"></i>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="font-medium">Chuyển khoản ngân hàng</div>
+                                            <div class="text-gray-600 text-sm">Chuyển khoản đến tài khoản của FShop</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="border border-gray-200 rounded-md p-4 hover:border-amber-600 cursor-pointer relative">
+                                    <input type="radio" name="payment_method" value="momo" class="hidden">
+                                    <div class="flex items-center">
+                                        <div class="w-12 h-12 flex items-center justify-center bg-gray-100 rounded-md">
+                                            <img src="{% static 'images/momo-logo.png' %}" alt="MoMo" class="w-8 h-8">
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="font-medium">Ví MoMo</div>
+                                            <div class="text-gray-600 text-sm">Thanh toán qua ví điện tử MoMo</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="border border-gray-200 rounded-md p-4 hover:border-amber-600 cursor-pointer relative">
+                                    <input type="radio" name="payment_method" value="credit_card" class="hidden">
+                                    <div class="flex items-center">
+                                        <div class="w-12 h-12 flex items-center justify-center bg-gray-100 rounded-md">
+                                            <i class="fas fa-credit-card text-gray-600 text-xl"></i>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="font-medium">Thẻ tín dụng/ghi nợ</div>
+                                            <div class="text-gray-600 text-sm">Thanh toán bằng thẻ Visa, MasterCard, JCB</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Order Notes -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="p-6">
+                            <h2 class="text-lg font-semibold text-gray-800 mb-4">Ghi chú đơn hàng</h2>
+                            
+                            <div>
+                                <textarea id="order_notes" name="order_notes" rows="3" 
+                                          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                                          placeholder="Ghi chú về đơn hàng, ví dụ: thời gian hay địa điểm giao hàng chi tiết"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column: Order Summary -->
+                <div class="w-full lg:w-1/3">
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden sticky top-4">
+                        <div class="p-6 border-b border-gray-200">
+                            <h2 class="text-lg font-semibold text-gray-800 mb-4">Tóm tắt đơn hàng</h2>
+                            
+                            <!-- Order Items -->
+                            <div class="divide-y divide-gray-200 mb-4">
+                                {% for item in cart_items %}
+                                    <div class="py-3 flex">
+                                        <div class="flex-shrink-0 w-16 h-16 relative">
+                                            {% if item.product.images.first %}
+                                                <img src="{{ item.product.images.first.image.url }}" alt="{{ item.product.name }}" class="w-full h-full object-cover rounded-md">
+                                            {% else %}
+                                                <div class="w-full h-full bg-gray-100 flex items-center justify-center rounded-md">
+                                                    <i class="fas fa-image text-gray-400"></i>
+                                                </div>
+                                            {% endif %}
+                                            <div class="absolute -top-2 -right-2 bg-gray-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                                                {{ item.quantity }}
+                                            </div>
+                                        </div>
+                                        <div class="ml-4 flex-1">
+                                            <h3 class="text-sm text-gray-800 line-clamp-2">{{ item.product.name }}</h3>
+                                            <p class="text-sm text-gray-500">Màu: {{ item.color|default:"N/A" }}</p>
+                                        </div>
+                                        <div class="ml-2 text-right">
+                                            <span class="text-sm font-medium text-gray-800">{{ item.subtotal|floatformat:0 }} ₫</span>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <!-- Price Summary -->
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Tạm tính ({{ cart_items|length }} sản phẩm)</span>
+                                    <span class="text-gray-800 font-medium">{{ subtotal|floatformat:0 }} ₫</span>
+                                </div>
+                                
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Giảm giá</span>
+                                    <span class="text-gray-800 font-medium">-{{ discount|floatformat:0 }} ₫</span>
+                                </div>
+                                
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Phí vận chuyển</span>
+                                    <span class="text-gray-800 font-medium" id="shipping-fee">{{ shipping_fee|floatformat:0 }} ₫</span>
+                                </div>
+                                
+                                <div class="border-t border-gray-200 pt-3 mt-3">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-800 font-semibold">Tổng cộng</span>
+                                        <span class="text-gray-800 font-bold text-lg" id="total-amount">{{ total|floatformat:0 }} ₫</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-6">
+                            <button type="submit" class="block w-full bg-amber-600 text-white text-center py-3 px-4 rounded-md hover:bg-amber-700 transition duration-300">
+                                Đặt hàng
+                            </button>
+                            
+                            <div class="mt-4 text-center">
+                                <a href="{% url 'cart' %}" class="text-amber-600 hover:text-amber-800">
+                                    <i class="fas fa-arrow-left mr-1"></i> Quay lại giỏ hàng
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle shipping methods
+        const shippingMethods = document.querySelectorAll('[name="shipping_method"]');
+        const shippingMethodDivs = document.querySelectorAll('[name="shipping_method"]').forEach(radio => {
+            const div = radio.closest('div');
+            div.addEventListener('click', function() {
+                // Reset all
+                document.querySelectorAll('[name="shipping_method"]').forEach(r => {
+                    r.closest('div').classList.remove('border-amber-600', 'bg-amber-50');
+                });
+                
+                // Set active
+                radio.checked = true;
+                div.classList.add('border-amber-600', 'bg-amber-50');
+                
+                // Update shipping fee and total
+                updateOrderSummary();
+            });
+        });
+        
+        // Toggle payment methods
+        const paymentMethods = document.querySelectorAll('[name="payment_method"]');
+        paymentMethods.forEach(radio => {
+            const div = radio.closest('div');
+            div.addEventListener('click', function() {
+                // Reset all
+                paymentMethods.forEach(r => {
+                    r.closest('div').classList.remove('border-amber-600', 'bg-amber-50');
+                });
+                
+                // Set active
+                radio.checked = true;
+                div.classList.add('border-amber-600', 'bg-amber-50');
+            });
+        });
+        
+        // Toggle saved addresses
+        if (document.querySelectorAll('[name="address_id"]').length > 0) {
+            document.querySelectorAll('[name="address_id"]').forEach(radio => {
+                const div = radio.closest('div');
+                div.addEventListener('click', function() {
+                    // Reset all
+                    document.querySelectorAll('[name="address_id"]').forEach(r => {
+                        r.closest('div').classList.remove('border-amber-600', 'bg-amber-50');
+                    });
+                    
+                    // Set active
+                    radio.checked = true;
+                    div.classList.add('border-amber-600', 'bg-amber-50');
+                });
+            });
+        }
+        
+        // New address option
+        const newAddressOption = document.getElementById('new-address-option');
+        const newAddressForm = document.getElementById('new-address-form');
+        const cancelNewAddressBtn = document.getElementById('cancel-new-address');
+        
+        if (newAddressOption) {
+            newAddressOption.addEventListener('click', function() {
+                newAddressForm.classList.remove('hidden');
+                document.querySelectorAll('[name="address_id"]').forEach(r => {
+                    r.checked = false;
+                    r.closest('div').classList.remove('border-amber-600', 'bg-amber-50');
+                });
+            });
+        }
+        
+        if (cancelNewAddressBtn) {
+            cancelNewAddressBtn.addEventListener('click', function() {
+                newAddressForm.classList.add('hidden');
+                document.querySelector('[name="address_id"]').checked = true;
+                document.querySelector('[name="address_id"]').closest('div').classList.add('border-amber-600', 'bg-amber-50');
+            });
+        }
+        
+        // Toggle save address option
+        const saveAddressCheckbox = document.getElementById('save_address');
+        const defaultAddressOption = document.getElementById('default-address-option');
+        
+        if (saveAddressCheckbox && defaultAddressOption) {
+            saveAddressCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    defaultAddressOption.style.display = 'block';
+                } else {
+                    defaultAddressOption.style.display = 'none';
+                    document.getElementById('default_address').checked = false;
+                }
+            });
+        }
+        
+        // Load provinces data
+        loadProvinces();
+        
+        // Update order summary
+        function updateOrderSummary() {
+            const shippingMethod = document.querySelector('input[name="shipping_method"]:checked').value;
+            const shippingFeeEl = document.getElementById('shipping-fee');
+            const totalAmountEl = document.getElementById('total-amount');
+            
+            let shippingFee = 0;
+            let subtotal = parseFloat('{{ subtotal }}') || 0;
+            let discount = parseFloat('{{ discount }}') || 0;
+            
+            if (shippingMethod === 'standard') {
+                shippingFee = parseFloat('{{ shipping_fee }}') || 0;
+            } else if (shippingMethod === 'express') {
+                shippingFee = 50000;
+            }
+            
+            const total = subtotal - discount + shippingFee;
+            
+            shippingFeeEl.textContent = shippingFee.toLocaleString('vi-VN') + ' ₫';
+            totalAmountEl.textContent = total.toLocaleString('vi-VN') + ' ₫';
+        }
+        
+        // Load provinces/districts/wards data
+        function loadProvinces() {
+            fetch('/api/provinces/')
+                .then(response => response.json())
+                .then(data => {
+                    const provinceSelect = document.getElementById('province');
+                    data.forEach(province => {
+                        const option = document.createElement('option');
+                        option.value = province.code;
+                        option.textContent = province.name;
+                        provinceSelect.appendChild(option);
+                    });
+                    
+                    provinceSelect.addEventListener('change', function() {
+                        loadDistricts(this.value);
+                    });
+                })
+                .catch(error => console.error('Error loading provinces:', error));
+        }
+        
+        function loadDistricts(provinceCode) {
+            const districtSelect = document.getElementById('district');
+            districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+            districtSelect.disabled = true;
+            
+            const wardSelect = document.getElementById('ward');
+            wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+            wardSelect.disabled = true;
+            
+            if (!provinceCode) return;
+            
+            fetch(`/api/districts/${provinceCode}/`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(district => {
+                        const option = document.createElement('option');
+                        option.value = district.code;
+                        option.textContent = district.name;
+                        districtSelect.appendChild(option);
+                    });
+                    
+                    districtSelect.disabled = false;
+                    
+                    districtSelect.addEventListener('change', function() {
+                        loadWards(this.value);
+                    });
+                })
+                .catch(error => console.error('Error loading districts:', error));
+        }
+        
+        function loadWards(districtCode) {
+            const wardSelect = document.getElementById('ward');
+            wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+            wardSelect.disabled = true;
+            
+            if (!districtCode) return;
+            
+            fetch(`/api/wards/${districtCode}/`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(ward => {
+                        const option = document.createElement('option');
+                        option.value = ward.code;
+                        option.textContent = ward.name;
+                        wardSelect.appendChild(option);
+                    });
+                    
+                    wardSelect.disabled = false;
+                })
+                .catch(error => console.error('Error loading wards:', error));
+        }
+    });
+</script>
+{% endblock %} 
