@@ -1,5 +1,6 @@
 {% extends 'admin_panel/base.html' %}
 {% load static %}
+{% load custom_filters %}
 
 {% block title %}Tổng quan - FShop Admin{% endblock %}
 {% block header_title %}Tổng quan{% endblock %}
@@ -24,7 +25,7 @@
                 {% else %}
                 <i class="fas fa-arrow-down mr-1"></i>
                 {% endif %}
-                {{ order_percent_increase|abs }}%
+                {{ order_percent_increase|abs_value }}%
             </span>
             <span class="ml-2 text-gray-500 text-sm">so với tháng trước</span>
         </div>
@@ -47,7 +48,7 @@
                 {% else %}
                 <i class="fas fa-arrow-down mr-1"></i>
                 {% endif %}
-                {{ revenue_percent_increase|abs }}%
+                {{ revenue_percent_increase|abs_value }}%
             </span>
             <span class="ml-2 text-gray-500 text-sm">so với tháng trước</span>
         </div>
@@ -70,7 +71,7 @@
                 {% else %}
                 <i class="fas fa-arrow-down mr-1"></i>
                 {% endif %}
-                {{ customer_percent_increase|abs }}%
+                {{ customer_percent_increase|abs_value }}%
             </span>
             <span class="ml-2 text-gray-500 text-sm">so với tháng trước</span>
         </div>
@@ -93,7 +94,7 @@
                 {% else %}
                 <i class="fas fa-arrow-down mr-1"></i>
                 {% endif %}
-                {{ product_percent_increase|abs }}%
+                {{ product_percent_increase|abs_value }}%
             </span>
             <span class="ml-2 text-gray-500 text-sm">so với tháng trước</span>
         </div>
@@ -123,7 +124,7 @@
 <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-gray-800 font-semibold">Đơn hàng gần đây</h2>
-        <a href="{% url 'admin_orders' %}" class="text-primary-600 hover:text-primary-700 text-sm">
+        <a href="{% url 'admin_order_list' %}" class="text-primary-600 hover:text-primary-700 text-sm">
             Xem tất cả <i class="fas fa-arrow-right ml-1"></i>
         </a>
     </div>
@@ -231,12 +232,12 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- Low Stock Products -->
     <div class="bg-white rounded-lg shadow-sm p-6">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-gray-800 font-semibold">Sản phẩm sắp hết hàng</h2>
-            <a href="{% url 'admin_products' %}?filter=low_stock" class="text-primary-600 hover:text-primary-700 text-sm">
-                Xem tất cả <i class="fas fa-arrow-right ml-1"></i>
-            </a>
-        </div>
+            <div class="flex justify-between items-center mb-4">
+        <h2 class="text-gray-800 font-semibold">Sản phẩm sắp hết hàng</h2>
+        <a href="{% url 'admin_product_list' %}?filter=low_stock" class="text-primary-600 hover:text-primary-700 text-sm">
+            Xem tất cả <i class="fas fa-arrow-right ml-1"></i>
+        </a>
+    </div>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
@@ -323,9 +324,9 @@
                                 {% elif activity.activity_type == 'registration' %}
                                     <span class="font-medium">{{ activity.customer.user.get_full_name|default:activity.customer.user.username }}</span> đã đăng ký tài khoản mới
                                 {% elif activity.activity_type == 'review' %}
-                                    <span class="font-medium">{{ activity.customer.user.get_full_name|default:activity.customer.user.username }}</span> đã đánh giá sản phẩm <a href="{% url 'admin_product_detail' activity.reference_id %}" class="text-primary-600">{{ activity.reference_name }}</a>
+                                    <span class="font-medium">{{ activity.customer.user.get_full_name|default:activity.customer.user.username }}</span> đã đánh giá sản phẩm <a href="{% url 'admin_product_edit' activity.reference_id %}" class="text-primary-600">{{ activity.reference_name }}</a>
                                 {% elif activity.activity_type == 'wishlist' %}
-                                    <span class="font-medium">{{ activity.customer.user.get_full_name|default:activity.customer.user.username }}</span> đã thêm sản phẩm <a href="{% url 'admin_product_detail' activity.reference_id %}" class="text-primary-600">{{ activity.reference_name }}</a> vào danh sách yêu thích
+                                    <span class="font-medium">{{ activity.customer.user.get_full_name|default:activity.customer.user.username }}</span> đã thêm sản phẩm <a href="{% url 'admin_product_edit' activity.reference_id %}" class="text-primary-600">{{ activity.reference_name }}</a> vào danh sách yêu thích
                                 {% endif %}
                             </p>
                             <p class="text-sm text-gray-500 truncate">

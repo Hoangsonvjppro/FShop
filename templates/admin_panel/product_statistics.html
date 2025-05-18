@@ -1,0 +1,169 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}Thống kê sản phẩm - FShop Admin{% endblock %}
+{% block header_title %}Thống kê sản phẩm{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Sản phẩm bán chạy nhất -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">Sản phẩm bán chạy nhất</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">STT</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sản phẩm</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Danh mục</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thương hiệu</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Giá</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Đã bán</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for product in best_selling_products %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ forloop.counter }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10 rounded overflow-hidden">
+                                    {% if product.image %}
+                                        <img class="h-10 w-10 object-cover" src="{{ product.image.url }}" alt="{{ product.name }}">
+                                    {% else %}
+                                        <div class="h-10 w-10 bg-gray-100 flex items-center justify-center">
+                                            <i class="fas fa-image text-gray-400"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">{{ product.name }}</div>
+                                    <div class="text-xs text-gray-500">{{ product.dimensions }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ product.category.name }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ product.brand.name }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ product.price|floatformat:0 }} ₫
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {{ product.sold_quantity|default:"0" }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+                            Không có dữ liệu
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Biểu đồ danh mục bán chạy -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">Danh mục bán chạy</h2>
+            <div class="h-80">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Biểu đồ thương hiệu bán chạy -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">Thương hiệu bán chạy</h2>
+            <div class="h-80">
+                <canvas id="brandChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Biểu đồ danh mục
+        const categoryLabels = [];
+        const categoryData = [];
+        
+        {% for category in best_selling_categories %}
+            categoryLabels.push('{{ category.name }}');
+            categoryData.push({{ category.sold_quantity|default:"0" }});
+        {% endfor %}
+        
+        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(categoryCtx, {
+            type: 'bar',
+            data: {
+                labels: categoryLabels,
+                datasets: [{
+                    label: 'Số lượng bán',
+                    data: categoryData,
+                    backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Biểu đồ thương hiệu
+        const brandLabels = [];
+        const brandData = [];
+        
+        {% for brand in best_selling_brands %}
+            brandLabels.push('{{ brand.name }}');
+            brandData.push({{ brand.sold_quantity|default:"0" }});
+        {% endfor %}
+        
+        const brandCtx = document.getElementById('brandChart').getContext('2d');
+        new Chart(brandCtx, {
+            type: 'bar',
+            data: {
+                labels: brandLabels,
+                datasets: [{
+                    label: 'Số lượng bán',
+                    data: brandData,
+                    backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %} 

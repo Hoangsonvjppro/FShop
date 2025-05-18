@@ -1,0 +1,181 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}Thêm sản phẩm - FShop Admin{% endblock %}
+{% block header_title %}Thêm sản phẩm{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+    <form method="post" enctype="multipart/form-data" class="space-y-4">
+        {% csrf_token %}
+        
+        <!-- Thông tin cơ bản -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Tên sản phẩm</label>
+                <input type="text" id="name" name="name" required class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+            </div>
+            
+            <div>
+                <label for="slug" class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
+                <input type="text" id="slug" name="slug" required class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+            </div>
+            
+            <div>
+                <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Danh mục</label>
+                <select id="category" name="category" required class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    <option value="">Chọn danh mục</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label for="brand" class="block text-sm font-medium text-gray-700 mb-1">Thương hiệu</label>
+                <select id="brand" name="brand" required class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    <option value="">Chọn thương hiệu</option>
+                    {% for brand in brands %}
+                    <option value="{{ brand.id }}">{{ brand.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label for="price" class="block text-sm font-medium text-gray-700 mb-1">Giá (₫)</label>
+                <input type="number" id="price" name="price" min="0" required class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+            </div>
+            
+            <div>
+                <label for="stock" class="block text-sm font-medium text-gray-700 mb-1">Số lượng</label>
+                <input type="number" id="stock" name="stock" min="0" required class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+            </div>
+        </div>
+        
+        <!-- Thông tin kỹ thuật -->
+        <div class="border-t pt-4">
+            <h3 class="text-lg font-medium mb-4">Thông số kỹ thuật</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="room_type" class="block text-sm font-medium text-gray-700 mb-1">Loại phòng</label>
+                    <select id="room_type" name="room_type" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        <option value="">Chọn loại phòng</option>
+                        {% for value, name in room_types %}
+                        <option value="{{ value }}">{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="material" class="block text-sm font-medium text-gray-700 mb-1">Chất liệu</label>
+                    <select id="material" name="material" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        <option value="">Chọn chất liệu</option>
+                        {% for value, name in material_choices %}
+                        <option value="{{ value }}">{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="dimensions" class="block text-sm font-medium text-gray-700 mb-1">Kích thước</label>
+                    <input type="text" id="dimensions" name="dimensions" placeholder="VD: 120x60x75 cm" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+                
+                <div>
+                    <label for="weight" class="block text-sm font-medium text-gray-700 mb-1">Trọng lượng (kg)</label>
+                    <input type="number" step="0.01" id="weight" name="weight" min="0" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+                
+                <div>
+                    <label for="warranty" class="block text-sm font-medium text-gray-700 mb-1">Bảo hành (tháng)</label>
+                    <input type="number" id="warranty" name="warranty" min="0" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mô tả -->
+        <div class="border-t pt-4">
+            <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Mô tả sản phẩm</label>
+            <textarea id="description" name="description" rows="6" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"></textarea>
+        </div>
+        
+        <!-- Hình ảnh -->
+        <div class="border-t pt-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Hình ảnh sản phẩm</label>
+            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                <div class="space-y-1 text-center">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <div class="flex text-sm text-gray-600">
+                        <label for="images" class="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500">
+                            <span>Tải ảnh lên</span>
+                            <input id="images" name="images" type="file" class="sr-only" accept="image/*" multiple required>
+                        </label>
+                        <p class="pl-1">hoặc kéo thả</p>
+                    </div>
+                    <p class="text-xs text-gray-500">PNG, JPG, GIF tối đa 10MB</p>
+                    <div id="preview" class="grid grid-cols-3 gap-2 mt-2"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Buttons -->
+        <div class="flex justify-end space-x-3 border-t pt-4">
+            <a href="{% url 'admin_product_list' %}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                Quay lại
+            </a>
+            <button type="submit" class="bg-primary-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                Thêm sản phẩm
+            </button>
+        </div>
+    </form>
+</div>
+
+{% block extra_scripts %}
+<script>
+    // Tự động tạo slug từ tên sản phẩm
+    document.getElementById('name').addEventListener('input', function() {
+        const name = this.value;
+        const slug = name
+            .toLowerCase()
+            .replace(/[àáạảãâầấậẩẫăằắặẳẵ]/g, 'a')
+            .replace(/[èéẹẻẽêềếệểễ]/g, 'e')
+            .replace(/[ìíịỉĩ]/g, 'i')
+            .replace(/[òóọỏõôồốộổỗơờớợởỡ]/g, 'o')
+            .replace(/[ùúụủũưừứựửữ]/g, 'u')
+            .replace(/[ỳýỵỷỹ]/g, 'y')
+            .replace(/đ/g, 'd')
+            .replace(/\s+/g, '-')
+            .replace(/[^\w\-]+/g, '')
+            .replace(/\-\-+/g, '-')
+            .replace(/^-+/, '')
+            .replace(/-+$/, '');
+        
+        document.getElementById('slug').value = slug;
+    });
+    
+    // Hiển thị xem trước ảnh
+    document.getElementById('images').addEventListener('change', function() {
+        const preview = document.getElementById('preview');
+        preview.innerHTML = '';
+        
+        for (const file of this.files) {
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'relative';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" class="h-20 w-20 object-cover rounded">
+                    `;
+                    preview.appendChild(div);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %} 

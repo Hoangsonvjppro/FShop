@@ -1,0 +1,156 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}Chi tiết khách hàng - FShop Admin{% endblock %}
+{% block header_title %}Chi tiết khách hàng{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Thông tin khách hàng -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center">
+                {% if customer.avatar %}
+                    <img class="h-24 w-24 rounded-full object-cover" src="{{ customer.avatar.url }}" alt="{{ customer.fullname }}">
+                {% else %}
+                    <i class="fas fa-user text-gray-400 text-4xl"></i>
+                {% endif %}
+            </div>
+            <div class="ml-6">
+                <h2 class="text-2xl font-semibold text-gray-900">{{ customer.fullname }}</h2>
+                <div class="mt-1 flex items-center">
+                    <span class="text-sm text-gray-600">
+                        {% if customer.user.is_active %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <i class="fas fa-check-circle mr-1"></i> Đang hoạt động
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                <i class="fas fa-ban mr-1"></i> Đã khóa
+                            </span>
+                        {% endif %}
+                    </span>
+                    <span class="ml-2 text-sm text-gray-600">
+                        <i class="far fa-calendar-alt mr-1"></i> Tham gia {{ customer.created_at|date:"d/m/Y" }}
+                    </span>
+                </div>
+            </div>
+            <div class="ml-auto">
+                {% if customer.user.is_active %}
+                <form method="post" action="{% url 'admin_customer_toggle_status' customer.id %}" class="inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="deactivate">
+                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
+                        <i class="fas fa-ban mr-1"></i> Khóa tài khoản
+                    </button>
+                </form>
+                {% else %}
+                <form method="post" action="{% url 'admin_customer_toggle_status' customer.id %}" class="inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="activate">
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+                        <i class="fas fa-check-circle mr-1"></i> Kích hoạt tài khoản
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Thông tin liên hệ -->
+        <div class="mt-8">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Thông tin liên hệ</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <div class="bg-gray-50 p-4 rounded">
+                        <p class="text-sm text-gray-500">Email</p>
+                        <p class="mt-1">{{ customer.user.email }}</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="bg-gray-50 p-4 rounded">
+                        <p class="text-sm text-gray-500">Số điện thoại</p>
+                        <p class="mt-1">{{ customer.phone }}</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="bg-gray-50 p-4 rounded">
+                        <p class="text-sm text-gray-500">Địa chỉ</p>
+                        <p class="mt-1">{{ customer.address }}</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="bg-gray-50 p-4 rounded">
+                        <p class="text-sm text-gray-500">Tỉnh/Thành phố</p>
+                        <p class="mt-1">{{ customer.city }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Đơn hàng -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Lịch sử đơn hàng</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mã đơn</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày đặt</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tổng tiền</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for order in orders %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {{ order.order_number }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ order.created_at|date:"d/m/Y H:i" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ order.total_price|floatformat:0 }} ₫
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if order.status == 'pending' %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                    Chờ xác nhận
+                                </span>
+                            {% elif order.status == 'confirmed' %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    Đã xác nhận
+                                </span>
+                            {% elif order.status == 'shipping' %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                                    Đang giao hàng
+                                </span>
+                            {% elif order.status == 'completed' %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    Hoàn thành
+                                </span>
+                            {% elif order.status == 'canceled' %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                    Đã hủy
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <a href="{% url 'admin_order_detail' order.id %}" class="text-primary-600 hover:text-primary-900">Chi tiết</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                            Khách hàng chưa có đơn hàng nào
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %} 

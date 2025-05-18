@@ -1,0 +1,128 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}Danh sách sản phẩm - FShop Admin{% endblock %}
+{% block header_title %}Danh sách sản phẩm{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-semibold">Danh sách sản phẩm</h2>
+        <a href="{% url 'admin_product_add' %}" class="bg-primary-600 text-white px-4 py-2 rounded hover:bg-primary-700">
+            <i class="fas fa-plus mr-2"></i>Thêm sản phẩm
+        </a>
+    </div>
+    
+    <!-- Bộ lọc và tìm kiếm -->
+    <form method="get" class="mb-6 flex flex-wrap gap-4">
+        <div class="flex-grow max-w-xs">
+            <label for="search" class="sr-only">Tìm kiếm</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-gray-400"></i>
+                </div>
+                <input type="text" id="search" name="search" value="{{ search_query }}" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" placeholder="Tìm kiếm sản phẩm">
+            </div>
+        </div>
+        
+        <div>
+            <label for="filter" class="sr-only">Bộ lọc</label>
+            <select id="filter" name="filter" class="border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                <option value="" {% if filter == '' %}selected{% endif %}>Tất cả sản phẩm</option>
+                <option value="available" {% if filter == 'available' %}selected{% endif %}>Còn hàng</option>
+                <option value="out_of_stock" {% if filter == 'out_of_stock' %}selected{% endif %}>Hết hàng</option>
+                <option value="low_stock" {% if filter == 'low_stock' %}selected{% endif %}>Sắp hết hàng</option>
+                <option value="deleted" {% if filter == 'deleted' %}selected{% endif %}>Đã xóa</option>
+            </select>
+        </div>
+        
+        <button type="submit" class="bg-gray-100 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-200">
+            <i class="fas fa-filter mr-2"></i>Lọc
+        </button>
+    </form>
+    
+    <!-- Bảng sản phẩm -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hình ảnh</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên sản phẩm</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Danh mục</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Giá</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tồn kho</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for product in products %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="h-10 w-10 rounded-md overflow-hidden">
+                            {% if product.image %}
+                                <img class="h-10 w-10 object-cover" src="{{ product.image.url }}" alt="{{ product.name }}">
+                            {% else %}
+                                <div class="h-10 w-10 bg-gray-100 flex items-center justify-center">
+                                    <i class="fas fa-image text-gray-400"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm font-medium text-gray-900">{{ product.name }}</div>
+                        <div class="text-sm text-gray-500">{{ product.brand.name }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ product.category.name }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ product.price|floatformat:0 }} ₫
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if product.stock <= 5 and product.stock > 0 %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                {{ product.stock }}
+                            </span>
+                        {% elif product.stock == 0 %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                Hết hàng
+                            </span>
+                        {% else %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                {{ product.stock }}
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if product.is_deleted %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                Đã xóa
+                            </span>
+                        {% elif product.available %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                Đang bán
+                            </span>
+                        {% else %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                Ngừng bán
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <a href="{% url 'admin_product_edit' product.id %}" class="text-primary-600 hover:text-primary-900 mr-4">Sửa</a>
+                        <a href="{% url 'admin_product_delete' product.id %}" class="text-red-600 hover:text-red-900">Xóa</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">
+                        Không có sản phẩm nào
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %} 

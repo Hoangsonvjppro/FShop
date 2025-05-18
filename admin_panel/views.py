@@ -52,54 +52,11 @@ def dashboard(request):
     products_last_month = Product.objects.filter(created_at__lt=last_month, created_at__gte=last_month - timedelta(days=30)).count()
     product_percent_increase = calculate_percent_change(products_current_month, products_last_month)
     
-    # Dữ liệu cho biểu đồ
-    # Doanh thu 6 tháng gần đây
-    months = []
-    revenue_data = []
-    for i in range(5, -1, -1):
-        month_start = current_month - timedelta(days=30 * i)
-        month_end = current_month - timedelta(days=30 * (i-1)) if i > 0 else current_month
-        month_name = month_start.strftime('%m/%Y')
-        month_revenue = Order.objects.filter(created_at__gte=month_start, created_at__lt=month_end, status__in=['completed', 'delivered']).aggregate(Sum('total_price'))['total_price__sum'] or 0
-        months.append(month_name)
-        revenue_data.append(month_revenue)
-    
-    # Thống kê trạng thái đơn hàng
-    order_status_data = []
-    for status, _ in Order.STATUS_CHOICES:
-        count = Order.objects.filter(status=status).count()
-        order_status_data.append(count)
-    
     # Sản phẩm sắp hết hàng
     low_stock_products = Product.objects.filter(stock__lte=5, available=True, is_deleted=False).order_by('stock')[:5]
     
     # Đơn hàng gần đây
     recent_orders = Order.objects.order_by('-created_at')[:5]
-    
-    # Hoạt động gần đây
-    recent_activities = []
-    # Đơn hàng mới
-    recent_order_activities = Order.objects.order_by('-created_at')[:3]
-    for order in recent_order_activities:
-        recent_activities.append({
-            'activity_type': 'order',
-            'customer': order.user.customer,
-            'reference_id': order.id,
-            'reference_number': order.id,
-            'created_at': order.created_at
-        })
-    
-    # Khách hàng mới đăng ký
-    recent_customer_activities = Customer.objects.order_by('-created_at')[:3]
-    for customer in recent_customer_activities:
-        recent_activities.append({
-            'activity_type': 'registration',
-            'customer': customer,
-            'created_at': customer.created_at
-        })
-    
-    # Sắp xếp hoạt động theo thời gian
-    recent_activities = sorted(recent_activities, key=lambda x: x['created_at'], reverse=True)[:5]
     
     context = {
         'total_products': total_products,
@@ -110,15 +67,11 @@ def dashboard(request):
         'revenue_percent_increase': revenue_percent_increase,
         'customer_percent_increase': customer_percent_increase,
         'product_percent_increase': product_percent_increase,
-        'months': months,
-        'revenue_data': revenue_data,
-        'order_status_data': order_status_data,
         'low_stock_products': low_stock_products,
         'recent_orders': recent_orders,
-        'recent_activities': recent_activities,
     }
     
-    return render(request, 'admin_panel/dashboard.html', context)
+    return render(request, 'admin_panel/simple_dashboard/dashboard.html', context)
 
 
 def calculate_percent_change(current, previous):
@@ -565,6 +518,26 @@ def customer_detail(request, customer_id):
     }
     
     return render(request, 'admin_panel/customer_detail.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def customer_toggle_status(request, customer_id):
+    """Kích hoạt/Vô hiệu hóa tài khoản khách hàng."""
+    customer = get_object_or_404(Customer, id=customer_id)
+    
+    if request.method == 'POST':
+        status = request.POST.get('status')
+        if status == 'activate':
+            customer.user.is_active = True
+            messages.success(request, f'Đã kích hoạt tài khoản của khách hàng {customer.fullname}')
+        else:
+            customer.user.is_active = False
+            messages.success(request, f'Đã vô hiệu hóa tài khoản của khách hàng {customer.fullname}')
+        
+        customer.user.save()
+    
+    return redirect('admin_customer_detail', customer_id=customer.id)
 
 
 # REPORTS & STATISTICS
@@ -1044,17 +1017,17 @@ def product_statistics(request):
     """Thống kê sản phẩm."""
     # Sản phẩm bán chạy nhất
     best_selling_products = Product.objects.annotate(
-        sold_quantity=Sum('orderitem__quantity')
+        sold_quantity=Sum('order_items__quantity')
     ).order_by('-sold_quantity')[:10]
     
     # Danh mục bán chạy nhất
     best_selling_categories = Category.objects.annotate(
-        sold_quantity=Sum('products__orderitem__quantity')
+        sold_quantity=Sum('products__order_items__quantity')
     ).order_by('-sold_quantity')[:5]
     
     # Thương hiệu bán chạy nhất
     best_selling_brands = Brand.objects.annotate(
-        sold_quantity=Sum('products__orderitem__quantity')
+        sold_quantity=Sum('products__order_items__quantity')
     ).order_by('-sold_quantity')[:5]
     
     context = {
@@ -1072,8 +1045,8 @@ def customer_statistics(request):
     """Thống kê khách hàng."""
     # Khách hàng mua nhiều nhất
     top_customers = Customer.objects.annotate(
-        total_spent=Sum('user__order__total_price'),
-        order_count=Count('user__order')
+        total_spent=Sum('user__orders__total_price'),
+        order_count=Count('user__orders')
     ).order_by('-total_spent')[:10]
     
     # Thông tin đăng ký khách hàng theo thời gian

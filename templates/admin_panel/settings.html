@@ -1,0 +1,155 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}Cài đặt - FShop Admin{% endblock %}
+{% block header_title %}Cài đặt hệ thống{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Thanh bên -->
+    <div class="md:col-span-1">
+        <div class="bg-white rounded-lg shadow-sm">
+            <div class="p-4 border-b">
+                <h3 class="text-lg font-medium">Cài đặt</h3>
+            </div>
+            <nav class="space-y-1 p-2">
+                <a href="#general" class="settings-nav-item block px-3 py-2 rounded-md text-base font-medium text-gray-900 bg-gray-100">
+                    <i class="fas fa-cog mr-3 text-gray-500"></i>
+                    Cài đặt chung
+                </a>
+                <a href="#store" class="settings-nav-item block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900">
+                    <i class="fas fa-store mr-3 text-gray-500"></i>
+                    Thông tin cửa hàng
+                </a>
+                <a href="#security" class="settings-nav-item block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900">
+                    <i class="fas fa-shield-alt mr-3 text-gray-500"></i>
+                    Bảo mật
+                </a>
+                <a href="#emails" class="settings-nav-item block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900">
+                    <i class="fas fa-envelope mr-3 text-gray-500"></i>
+                    Email
+                </a>
+                <a href="#payment" class="settings-nav-item block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900">
+                    <i class="fas fa-credit-card mr-3 text-gray-500"></i>
+                    Thanh toán
+                </a>
+                <a href="#shipping" class="settings-nav-item block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900">
+                    <i class="fas fa-truck mr-3 text-gray-500"></i>
+                    Vận chuyển
+                </a>
+                <a href="#users" class="settings-nav-item block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900">
+                    <i class="fas fa-users-cog mr-3 text-gray-500"></i>
+                    Quản lý nhân viên
+                </a>
+            </nav>
+        </div>
+    </div>
+    
+    <!-- Nội dung cài đặt -->
+    <div class="md:col-span-2">
+        <!-- Cài đặt chung -->
+        <div id="general" class="settings-section bg-white rounded-lg shadow-sm p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Cài đặt chung</h2>
+            <form method="post" action="{% url 'admin_settings' %}" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="setting_type" value="general">
+                
+                <div>
+                    <label for="site_name" class="block text-sm font-medium text-gray-700 mb-1">Tên trang web</label>
+                    <input type="text" id="site_name" name="site_name" value="{{ settings.site_name }}" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+                
+                <div>
+                    <label for="site_description" class="block text-sm font-medium text-gray-700 mb-1">Mô tả trang web</label>
+                    <textarea id="site_description" name="site_description" rows="3" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">{{ settings.site_description }}</textarea>
+                </div>
+                
+                <div>
+                    <label for="maintenance_mode" class="flex items-center">
+                        <input type="checkbox" id="maintenance_mode" name="maintenance_mode" {% if settings.maintenance_mode %}checked{% endif %} class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                        <span class="ml-2 text-sm text-gray-900">Chế độ bảo trì</span>
+                    </label>
+                </div>
+                
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-primary-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Thông tin cửa hàng -->
+        <div id="store" class="settings-section bg-white rounded-lg shadow-sm p-6 mb-6 hidden">
+            <h2 class="text-xl font-semibold mb-4">Thông tin cửa hàng</h2>
+            <form method="post" action="{% url 'admin_settings' %}" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="setting_type" value="store">
+                
+                <div>
+                    <label for="store_name" class="block text-sm font-medium text-gray-700 mb-1">Tên cửa hàng</label>
+                    <input type="text" id="store_name" name="store_name" value="{{ settings.store_name }}" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+                
+                <div>
+                    <label for="store_address" class="block text-sm font-medium text-gray-700 mb-1">Địa chỉ</label>
+                    <input type="text" id="store_address" name="store_address" value="{{ settings.store_address }}" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="store_phone" class="block text-sm font-medium text-gray-700 mb-1">Điện thoại</label>
+                        <input type="text" id="store_phone" name="store_phone" value="{{ settings.store_phone }}" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    </div>
+                    
+                    <div>
+                        <label for="store_email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="store_email" name="store_email" value="{{ settings.store_email }}" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    </div>
+                </div>
+                
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-primary-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Các phần cài đặt khác tương tự -->
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const navItems = document.querySelectorAll('.settings-nav-item');
+        const sections = document.querySelectorAll('.settings-section');
+        
+        navItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href').substring(1);
+                
+                // Ẩn tất cả các phần
+                sections.forEach(section => {
+                    section.classList.add('hidden');
+                });
+                
+                // Hiển thị phần được chọn
+                document.getElementById(targetId).classList.remove('hidden');
+                
+                // Cập nhật trạng thái active
+                navItems.forEach(navItem => {
+                    navItem.classList.remove('bg-gray-100', 'text-gray-900');
+                    navItem.classList.add('text-gray-600', 'hover:bg-gray-50', 'hover:text-gray-900');
+                });
+                this.classList.add('bg-gray-100', 'text-gray-900');
+                this.classList.remove('text-gray-600', 'hover:bg-gray-50', 'hover:text-gray-900');
+            });
+        });
+    });
+</script>
+{% endblock %} 

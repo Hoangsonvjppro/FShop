@@ -30,6 +30,7 @@ urlpatterns = [
     # Khách hàng
     path('customers/', views.customer_list, name='admin_customer_list'),
     path('customers/<int:customer_id>/', views.customer_detail, name='admin_customer_detail'),
+    path('customers/<int:customer_id>/toggle-status/', views.customer_toggle_status, name='admin_customer_toggle_status'),
     
     # Nhân viên
     path('employees/', views.employee_list, name='admin_employee_list'),
@@ -59,4 +60,13 @@ urlpatterns = [
     path('statistics/products/', views.product_statistics, name='admin_product_statistics'),
     path('statistics/customers/', views.customer_statistics, name='admin_customer_statistics'),
     path('statistics/sales/', views.sales_statistics, name='admin_sales_statistics'),
+    
+    # Báo cáo
+    path('reports/', views.admin_reports, name='admin_reports'),
+    
+    # Cài đặt
+    path('settings/', views.admin_settings, name='admin_settings'),
+    
+    # Tài khoản
+    path('profile/', views.admin_settings, name='admin_profile'),
 ] 

@@ -1,0 +1,227 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Báo cáo - FShop Admin{% endblock %}
+{% block header_title %}Báo cáo thống kê{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Báo cáo doanh thu -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-xl font-semibold mb-4">Báo cáo doanh thu</h2>
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <span class="text-gray-600">Doanh thu hôm nay:</span>
+                <span class="font-semibold">{{ revenue_today|floatformat:0 }} ₫</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-gray-600">Doanh thu tuần này:</span>
+                <span class="font-semibold">{{ revenue_this_week|floatformat:0 }} ₫</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-gray-600">Doanh thu tháng này:</span>
+                <span class="font-semibold">{{ revenue_this_month|floatformat:0 }} ₫</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-gray-600">Doanh thu năm nay:</span>
+                <span class="font-semibold">{{ revenue_this_year|floatformat:0 }} ₫</span>
+            </div>
+        </div>
+        <div class="mt-6 h-64">
+            <canvas id="revenueChart"></canvas>
+        </div>
+        <div class="mt-4 text-right">
+            <a href="{% url 'admin_sales_statistics' %}" class="text-primary-600 hover:text-primary-800 font-medium">
+                Xem chi tiết <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Báo cáo đơn hàng -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-xl font-semibold mb-4">Báo cáo đơn hàng</h2>
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <span class="text-gray-600">Tổng đơn hàng:</span>
+                <span class="font-semibold">{{ total_orders }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-gray-600">Đơn hàng đang xử lý:</span>
+                <span class="font-semibold">{{ pending_orders }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-gray-600">Đơn hàng đã hoàn thành:</span>
+                <span class="font-semibold">{{ completed_orders }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-gray-600">Đơn hàng đã hủy:</span>
+                <span class="font-semibold">{{ canceled_orders }}</span>
+            </div>
+        </div>
+        <div class="mt-6 h-64">
+            <canvas id="ordersChart"></canvas>
+        </div>
+        <div class="mt-4 text-right">
+            <a href="{% url 'admin_order_list' %}" class="text-primary-600 hover:text-primary-800 font-medium">
+                Xem chi tiết <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Báo cáo sản phẩm -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-xl font-semibold mb-4">Báo cáo sản phẩm</h2>
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <span class="text-gray-600">Tổng số sản phẩm:</span>
+                <span class="font-semibold">{{ total_products }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-gray-600">Sản phẩm đang kinh doanh:</span>
+                <span class="font-semibold">{{ active_products }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-gray-600">Sản phẩm hết hàng:</span>
+                <span class="font-semibold">{{ out_of_stock_products }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-gray-600">Sản phẩm sắp hết hàng:</span>
+                <span class="font-semibold">{{ low_stock_products }}</span>
+            </div>
+        </div>
+        <div class="mt-6">
+            <h3 class="font-medium text-gray-700 mb-2">Top 5 sản phẩm bán chạy</h3>
+            <ul class="space-y-2">
+                {% for product in top_selling_products %}
+                <li class="flex items-center justify-between">
+                    <span class="text-sm">{{ product.name }}</span>
+                    <span class="text-sm font-medium">{{ product.sold_count }} đã bán</span>
+                </li>
+                {% empty %}
+                <li class="text-sm text-gray-500">Không có dữ liệu</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="mt-4 text-right">
+            <a href="{% url 'admin_product_statistics' %}" class="text-primary-600 hover:text-primary-800 font-medium">
+                Xem chi tiết <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Báo cáo khách hàng -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-xl font-semibold mb-4">Báo cáo khách hàng</h2>
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <span class="text-gray-600">Tổng số khách hàng:</span>
+                <span class="font-semibold">{{ total_customers }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-gray-600">Khách hàng mới tháng này:</span>
+                <span class="font-semibold">{{ new_customers_month }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-gray-600">Khách hàng thân thiết:</span>
+                <span class="font-semibold">{{ loyal_customers }}</span>
+            </div>
+        </div>
+        <div class="mt-6">
+            <h3 class="font-medium text-gray-700 mb-2">Top 5 khách hàng mua nhiều nhất</h3>
+            <ul class="space-y-2">
+                {% for customer in top_customers %}
+                <li class="flex items-center justify-between">
+                    <span class="text-sm">{{ customer.fullname }}</span>
+                    <span class="text-sm font-medium">{{ customer.total_spent|floatformat:0 }} ₫</span>
+                </li>
+                {% empty %}
+                <li class="text-sm text-gray-500">Không có dữ liệu</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="mt-4 text-right">
+            <a href="{% url 'admin_customer_statistics' %}" class="text-primary-600 hover:text-primary-800 font-medium">
+                Xem chi tiết <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Biểu đồ doanh thu
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        const revenueChart = new Chart(revenueCtx, {
+            type: 'line',
+            data: {
+                labels: [{% for date in revenue_dates %}"{{ date }}"{% if not forloop.last %}, {% endif %}{% endfor %}],
+                datasets: [{
+                    label: 'Doanh thu (VNĐ)',
+                    data: [{% for value in revenue_values %}{{ value }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 2,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " ₫";
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Biểu đồ đơn hàng
+        const ordersCtx = document.getElementById('ordersChart').getContext('2d');
+        const ordersChart = new Chart(ordersCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Chờ xử lý', 'Đang giao', 'Hoàn thành', 'Đã hủy'],
+                datasets: [{
+                    data: [
+                        {{ pending_orders|default:"0" }},
+                        {{ shipping_orders|default:"0" }},
+                        {{ completed_orders|default:"0" }}, 
+                        {{ canceled_orders|default:"0" }}
+                    ],
+                    backgroundColor: [
+                        'rgba(245, 158, 11, 0.7)',
+                        'rgba(139, 92, 246, 0.7)',
+                        'rgba(16, 185, 129, 0.7)',
+                        'rgba(239, 68, 68, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(245, 158, 11, 1)',
+                        'rgba(139, 92, 246, 1)',
+                        'rgba(16, 185, 129, 1)',
+                        'rgba(239, 68, 68, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %} 

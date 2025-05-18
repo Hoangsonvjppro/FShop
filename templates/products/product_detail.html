@@ -35,7 +35,7 @@
                     <div class="mb-4">
                         <img 
                             id="main-image"
-                            src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'images/no-image.png' %}{% endif %}" 
+                            src="{% if product.image %}{{ product.image.url }}{% else %}https://via.placeholder.com/400x400?text=No+Image{% endif %}" 
                             alt="{{ product.name }}" 
                             class="w-full h-auto object-cover rounded-lg"
                             style="max-height: 400px;"
@@ -47,11 +47,10 @@
                     <div class="grid grid-cols-5 gap-2">
                         <div class="col-span-1">
                             <img 
-                                src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'images/no-image.png' %}{% endif %}" 
+                                src="{% if product.image %}{{ product.image.url }}{% else %}https://via.placeholder.com/400x400?text=No+Image{% endif %}" 
                                 alt="{{ product.name }}" 
                                 class="w-full h-20 object-cover rounded cursor-pointer thumbnail active"
-                                onclick="changeMainImage(this.src)"
-                                onerror="this.src='https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80';this.onerror='';">
+                                onclick="changeMainImage(this.src)">
                         </div>
                         {% for image in product_images %}
                         <div class="col-span-1">
@@ -200,10 +199,9 @@
                         <a href="{{ product.get_absolute_url }}">
                             <div class="aspect-w-1 aspect-h-1 w-full">
                                 <img 
-                                    src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'images/no-image.png' %}{% endif %}" 
+                                    src="{% if product.image %}{{ product.image.url }}{% else %}https://via.placeholder.com/400x400?text=No+Image{% endif %}" 
                                     alt="{{ product.name }}" 
-                                    class="object-cover w-full h-48"
-                                    onerror="this.src='https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80';this.onerror='';">
+                                    class="object-cover w-full h-48">
                             </div>
                             <div class="p-4">
                                 <h3 class="text-lg font-medium text-gray-800 mb-2 truncate">{{ product.name }}</h3>
@@ -254,6 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             headers: {
                 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-Requested-With': 'XMLHttpRequest',
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams(new FormData(this))
@@ -264,19 +263,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Update cart count in header
                 const cartCount = document.getElementById('cart-count');
                 if (cartCount) {
-                    cartCount.textContent = data.total_items;
+                    cartCount.textContent = data.cart_count;
                 }
                 
                 // Show notification
                 showNotification('Đã thêm sản phẩm vào giỏ hàng!', 'success');
             } else {
-                showNotification(data.error, 'error');
+                showNotification(data.error || 'Có lỗi xảy ra, vui lòng thử lại!', 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
             showNotification('Có lỗi xảy ra, vui lòng thử lại!', 'error');
         });
+        
+        return false;
     });
     
     // Show notification function

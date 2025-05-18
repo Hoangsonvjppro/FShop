@@ -32,6 +32,14 @@ def cart_add(request, product_id):
     # Kiểm tra số lượng tồn kho
     if quantity > product.stock:
         messages.error(request, f'Chỉ còn {product.stock} sản phẩm trong kho')
+        
+        # Xử lý yêu cầu Ajax
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'error': f'Chỉ còn {product.stock} sản phẩm trong kho'
+            })
+            
         return redirect('product_detail', id=product.id, slug=product.slug)
     
     # Kiểm tra sản phẩm đã có trong giỏ hàng chưa
@@ -45,8 +53,18 @@ def cart_add(request, product_id):
     if not created:
         new_quantity = cart_item.quantity + quantity
         if new_quantity > product.stock:
-            messages.error(request, f'Giỏ hàng đã có {cart_item.quantity} sản phẩm. Chỉ còn {product.stock} sản phẩm trong kho')
+            msg = f'Giỏ hàng đã có {cart_item.quantity} sản phẩm. Chỉ còn {product.stock} sản phẩm trong kho'
+            messages.error(request, msg)
+            
+            # Xử lý yêu cầu Ajax
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'error': msg
+                })
+                
             return redirect('product_detail', id=product.id, slug=product.slug)
+            
         cart_item.quantity = new_quantity
         cart_item.save()
     
@@ -55,10 +73,13 @@ def cart_add(request, product_id):
     # Xử lý yêu cầu Ajax
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         cart_count = Cart.objects.filter(user=request.user).count()
+        cart_items = Cart.objects.filter(user=request.user)
+        total = sum(item.subtotal for item in cart_items)
         return JsonResponse({
             'success': True,
             'message': f'Đã thêm "{product.name}" vào giỏ hàng',
-            'cart_count': cart_count
+            'cart_count': cart_count,
+            'total': total
         })
         
     return redirect('cart_detail')

@@ -88,7 +88,14 @@
                                         <select id="province" name="province" required 
                                                 class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent">
                                             <option value="">-- Chọn Tỉnh/Thành phố --</option>
-                                            <!-- Province options will be loaded via JavaScript -->
+                                            <option value="01">Hà Nội</option>
+                                            <option value="02">Thành phố Hồ Chí Minh</option>
+                                            <option value="03">Đà Nẵng</option>
+                                            <option value="04">Huế</option>
+                                            <option value="05">Bình Dương</option>
+                                            <option value="06">Hải Phòng</option>
+                                            <option value="07">Cần Thơ</option>
+                                            <option value="08">Quảng Ninh</option>
                                         </select>
                                     </div>
                                     
@@ -318,7 +325,7 @@
                             </button>
                             
                             <div class="mt-4 text-center">
-                                <a href="{% url 'cart' %}" class="text-amber-600 hover:text-amber-800">
+                                <a href="{% url 'cart_detail' %}" class="text-amber-600 hover:text-amber-800">
                                     <i class="fas fa-arrow-left mr-1"></i> Quay lại giỏ hàng
                                 </a>
                             </div>
