@@ -1,0 +1,86 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}Xóa nhà cung cấp - FShop Admin{% endblock %}
+{% block header_title %}Xóa nhà cung cấp{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="mb-6">
+        <div class="flex items-center mb-6">
+            <a href="{% url 'admin_supplier_list' %}" class="text-primary-600 hover:text-primary-800 mr-2">
+                <i class="fas fa-arrow-left"></i> 
+            </a>
+            <h2 class="text-xl font-semibold">Xóa nhà cung cấp</h2>
+        </div>
+    </div>
+    
+    <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-triangle text-red-400"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-red-700">
+                    Bạn có chắc chắn muốn xóa nhà cung cấp <strong>{{ supplier.name }}</strong> không? 
+                    Hành động này không thể hoàn tác.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-gray-50 p-4 rounded-md mb-6">
+        <h3 class="font-medium mb-3">Thông tin nhà cung cấp</h3>
+        <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Tên nhà cung cấp</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ supplier.name }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Liên hệ</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ supplier.contact_info|default:"-" }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Số điện thoại</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ supplier.phone|default:"-" }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Email</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ supplier.email|default:"-" }}</dd>
+            </div>
+            <div class="sm:col-span-2">
+                <dt class="text-sm font-medium text-gray-500">Địa chỉ</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ supplier.address|default:"-" }}</dd>
+            </div>
+        </dl>
+    </div>
+    
+    {% if supplier.imports.exists %}
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-circle text-yellow-400"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-yellow-700">
+                    <strong>Cảnh báo:</strong> Nhà cung cấp này đã có {{ supplier.imports.count }} phiếu nhập. 
+                    Việc xóa nhà cung cấp có thể ảnh hưởng đến dữ liệu lịch sử nhập kho.
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <form method="post" action="{% url 'admin_supplier_delete' supplier.id %}">
+        {% csrf_token %}
+        <div class="flex justify-end space-x-3">
+            <a href="{% url 'admin_supplier_list' %}" class="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                Hủy
+            </a>
+            <button type="submit" class="bg-red-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                Xác nhận xóa
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %} 

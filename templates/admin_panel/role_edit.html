@@ -1,0 +1,148 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}Chỉnh sửa vai trò - FShop Admin{% endblock %}
+{% block header_title %}Chỉnh sửa vai trò{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+    <div class="mb-6">
+        <div class="flex items-center mb-6">
+            <a href="{% url 'admin_role_list' %}" class="text-primary-600 hover:text-primary-800 mr-2">
+                <i class="fas fa-arrow-left"></i> 
+            </a>
+            <h2 class="text-xl font-semibold">Chỉnh sửa vai trò: {{ role.name }}</h2>
+        </div>
+        
+        <p class="text-gray-600">Cập nhật thông tin và phân quyền cho vai trò.</p>
+    </div>
+    
+    <form method="post" action="{% url 'admin_role_edit' role.id %}" class="space-y-6">
+        {% csrf_token %}
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Thông tin cơ bản -->
+            <div class="space-y-4">
+                <h3 class="font-medium text-gray-700 text-lg">Thông tin vai trò</h3>
+                
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700">Tên vai trò <span class="text-red-500">*</span></label>
+                    <input type="text" id="name" name="name" value="{{ role.name }}" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+            </div>
+            
+            <!-- Phân quyền -->
+            <div>
+                <h3 class="font-medium text-gray-700 text-lg mb-4">Phân quyền</h3>
+                
+                <div class="border border-gray-200 rounded-md p-4 max-h-96 overflow-y-auto">
+                    <h4 class="font-medium mb-3">Quản lý sản phẩm</h4>
+                    <div class="space-y-2 mb-4">
+                        {% for permission in permissions %}
+                            {% if 'product' in permission.code %}
+                            <div class="flex items-center">
+                                <input type="checkbox" id="perm_{{ permission.id }}" name="permissions" value="{{ permission.id }}" 
+                                {% if permission.id in role_permissions %}checked{% endif %}
+                                class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                                <label for="perm_{{ permission.id }}" class="ml-2 block text-sm text-gray-900">
+                                    {{ permission.name }}
+                                </label>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    
+                    <h4 class="font-medium mb-3">Quản lý đơn hàng</h4>
+                    <div class="space-y-2 mb-4">
+                        {% for permission in permissions %}
+                            {% if 'order' in permission.code %}
+                            <div class="flex items-center">
+                                <input type="checkbox" id="perm_{{ permission.id }}" name="permissions" value="{{ permission.id }}" 
+                                {% if permission.id in role_permissions %}checked{% endif %}
+                                class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                                <label for="perm_{{ permission.id }}" class="ml-2 block text-sm text-gray-900">
+                                    {{ permission.name }}
+                                </label>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    
+                    <h4 class="font-medium mb-3">Quản lý khách hàng</h4>
+                    <div class="space-y-2 mb-4">
+                        {% for permission in permissions %}
+                            {% if 'customer' in permission.code %}
+                            <div class="flex items-center">
+                                <input type="checkbox" id="perm_{{ permission.id }}" name="permissions" value="{{ permission.id }}" 
+                                {% if permission.id in role_permissions %}checked{% endif %}
+                                class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                                <label for="perm_{{ permission.id }}" class="ml-2 block text-sm text-gray-900">
+                                    {{ permission.name }}
+                                </label>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    
+                    <h4 class="font-medium mb-3">Quản lý kho</h4>
+                    <div class="space-y-2 mb-4">
+                        {% for permission in permissions %}
+                            {% if 'import' in permission.code or 'inventory' in permission.code %}
+                            <div class="flex items-center">
+                                <input type="checkbox" id="perm_{{ permission.id }}" name="permissions" value="{{ permission.id }}" 
+                                {% if permission.id in role_permissions %}checked{% endif %}
+                                class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                                <label for="perm_{{ permission.id }}" class="ml-2 block text-sm text-gray-900">
+                                    {{ permission.name }}
+                                </label>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    
+                    <h4 class="font-medium mb-3">Báo cáo & thống kê</h4>
+                    <div class="space-y-2 mb-4">
+                        {% for permission in permissions %}
+                            {% if 'report' in permission.code or 'statistic' in permission.code %}
+                            <div class="flex items-center">
+                                <input type="checkbox" id="perm_{{ permission.id }}" name="permissions" value="{{ permission.id }}" 
+                                {% if permission.id in role_permissions %}checked{% endif %}
+                                class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                                <label for="perm_{{ permission.id }}" class="ml-2 block text-sm text-gray-900">
+                                    {{ permission.name }}
+                                </label>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    
+                    <h4 class="font-medium mb-3">Cài đặt hệ thống</h4>
+                    <div class="space-y-2">
+                        {% for permission in permissions %}
+                            {% if 'setting' in permission.code or 'system' in permission.code or 'role' in permission.code %}
+                            <div class="flex items-center">
+                                <input type="checkbox" id="perm_{{ permission.id }}" name="permissions" value="{{ permission.id }}" 
+                                {% if permission.id in role_permissions %}checked{% endif %}
+                                class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                                <label for="perm_{{ permission.id }}" class="ml-2 block text-sm text-gray-900">
+                                    {{ permission.name }}
+                                </label>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+            <a href="{% url 'admin_role_list' %}" class="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                Hủy
+            </a>
+            <button type="submit" class="bg-primary-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                Lưu thay đổi
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}Thêm nhà cung cấp mới - FShop Admin{% endblock %}
+{% block header_title %}Thêm nhà cung cấp mới{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+    <div class="mb-6">
+        <div class="flex items-center mb-6">
+            <a href="{% url 'admin_supplier_list' %}" class="text-primary-600 hover:text-primary-800 mr-2">
+                <i class="fas fa-arrow-left"></i> 
+            </a>
+            <h2 class="text-xl font-semibold">Thêm nhà cung cấp mới</h2>
+        </div>
+        
+        <p class="text-gray-600">Nhập thông tin chi tiết về nhà cung cấp mới.</p>
+    </div>
+    
+    <form method="post" action="{% url 'admin_supplier_add' %}" class="space-y-6">
+        {% csrf_token %}
+        
+        <div class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700">Tên nhà cung cấp <span class="text-red-500">*</span></label>
+                    <input type="text" id="name" name="name" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+                
+                <div>
+                    <label for="contact_info" class="block text-sm font-medium text-gray-700">Thông tin liên hệ</label>
+                    <input type="text" id="contact_info" name="contact_info" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="email" name="email" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+                
+                <div>
+                    <label for="phone" class="block text-sm font-medium text-gray-700">Số điện thoại</label>
+                    <input type="tel" id="phone" name="phone" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+            </div>
+            
+            <div>
+                <label for="address" class="block text-sm font-medium text-gray-700">Địa chỉ</label>
+                <textarea id="address" name="address" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"></textarea>
+            </div>
+            
+            <div class="flex items-center">
+                <input type="checkbox" id="is_active" name="is_active" checked class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                <label for="is_active" class="ml-2 block text-sm text-gray-900">
+                    Đang hoạt động
+                </label>
+            </div>
+        </div>
+        
+        <div class="flex justify-end space-x-3 pt-5">
+            <a href="{% url 'admin_supplier_list' %}" class="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                Hủy
+            </a>
+            <button type="submit" class="bg-primary-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                Lưu
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="mb-6">
+        <h3 class="text-lg font-medium text-gray-900">Hướng dẫn thêm nhà cung cấp</h3>
+    </div>
+    
+    <div class="prose prose-sm text-gray-500">
+        <ul>
+            <li>Nhập đầy đủ thông tin nhà cung cấp, đặc biệt là thông tin liên hệ và địa chỉ để thuận tiện cho việc liên lạc.</li>
+            <li>Thêm email và số điện thoại để có thể liên lạc nhanh chóng khi cần.</li>
+            <li>Mặc định, nhà cung cấp mới sẽ ở trạng thái "Đang hoạt động". Bạn có thể thay đổi trạng thái này bất cứ lúc nào.</li>
+            <li>Sau khi thêm nhà cung cấp, bạn có thể nhập hàng từ nhà cung cấp này trong phần Quản lý nhập kho.</li>
+        </ul>
+    </div>
+</div>
+{% endblock %} 

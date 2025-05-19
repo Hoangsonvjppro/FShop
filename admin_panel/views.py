@@ -714,12 +714,10 @@ def role_add(request):
     """Thêm vai trò mới."""
     if request.method == 'POST':
         name = request.POST.get('name')
-        description = request.POST.get('description')
         
         # Tạo vai trò mới
         role = Role.objects.create(
-            name=name,
-            description=description
+            name=name
         )
         
         # Xử lý quyền
@@ -745,7 +743,6 @@ def role_edit(request, role_id):
     
     if request.method == 'POST':
         role.name = request.POST.get('name')
-        role.description = request.POST.get('description')
         role.save()
         
         # Cập nhật quyền

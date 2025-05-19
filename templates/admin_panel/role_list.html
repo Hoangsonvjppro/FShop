@@ -1,0 +1,124 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}Quản lý vai trò - FShop Admin{% endblock %}
+{% block header_title %}Quản lý vai trò và phân quyền{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-semibold">Danh sách vai trò</h2>
+        <a href="{% url 'admin_role_add' %}" class="bg-primary-600 hover:bg-primary-700 text-white py-2 px-4 rounded-md">
+            <i class="fas fa-plus mr-2"></i>Thêm vai trò mới
+        </a>
+    </div>
+    
+    <!-- Bảng vai trò -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên vai trò</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Số lượng quyền</th>
+                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for role in roles %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        {{ role.id }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">{{ role.name }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            {{ role.permissions.count }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <a href="{% url 'admin_role_edit' role.id %}" class="text-primary-600 hover:text-primary-900 mr-3">
+                            <i class="fas fa-edit"></i> Sửa
+                        </a>
+                        <a href="{% url 'admin_role_delete' role.id %}" class="text-red-600 hover:text-red-900">
+                            <i class="fas fa-trash-alt"></i> Xóa
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">
+                        Chưa có vai trò nào. <a href="{% url 'admin_role_add' %}" class="text-primary-600">Thêm vai trò mới</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="mb-6">
+        <h2 class="text-xl font-semibold">Thông tin về phân quyền</h2>
+        <p class="text-gray-600 mt-2">Quản lý vai trò và quyền truy cập trong hệ thống. Mỗi vai trò có thể được gán một tập hợp quyền khác nhau.</p>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="border border-gray-200 rounded-lg p-4">
+            <h3 class="font-semibold text-lg mb-3">Hướng dẫn sử dụng</h3>
+            <ul class="list-disc pl-5 space-y-2 text-sm">
+                <li>Tạo các vai trò khác nhau cho từng vị trí trong tổ chức (Quản lý, Nhân viên bán hàng, Kế toán, ...)</li>
+                <li>Gán các quyền phù hợp cho từng vai trò</li>
+                <li>Phân vai trò cho nhân viên trong trang quản lý nhân viên</li>
+                <li>Có thể chỉnh sửa vai trò và quyền bất kỳ lúc nào</li>
+            </ul>
+        </div>
+        
+        <div class="border border-gray-200 rounded-lg p-4">
+            <h3 class="font-semibold text-lg mb-3">Quyền trong hệ thống</h3>
+            <div class="overflow-y-auto max-h-60">
+                <table class="min-w-full">
+                    <thead>
+                        <tr>
+                            <th class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider pb-2">Mã quyền</th>
+                            <th class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider pb-2">Mô tả</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <tr>
+                            <td class="py-2 text-sm">product_view</td>
+                            <td class="py-2 text-sm text-gray-600">Xem sản phẩm</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 text-sm">product_add</td>
+                            <td class="py-2 text-sm text-gray-600">Thêm sản phẩm</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 text-sm">product_edit</td>
+                            <td class="py-2 text-sm text-gray-600">Sửa sản phẩm</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 text-sm">order_manage</td>
+                            <td class="py-2 text-sm text-gray-600">Quản lý đơn hàng</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 text-sm">customer_manage</td>
+                            <td class="py-2 text-sm text-gray-600">Quản lý khách hàng</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 text-sm">import_manage</td>
+                            <td class="py-2 text-sm text-gray-600">Quản lý nhập kho</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 text-sm">report_view</td>
+                            <td class="py-2 text-sm text-gray-600">Xem báo cáo</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

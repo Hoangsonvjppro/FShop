@@ -1,0 +1,233 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}Tạo phiếu nhập kho - FShop Admin{% endblock %}
+{% block header_title %}Tạo phiếu nhập kho{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .select2-container--default .select2-selection--single {
+        height: 38px;
+        padding: 5px;
+        border-color: #D1D5DB;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+    <div class="mb-6">
+        <div class="flex items-center mb-6">
+            <a href="{% url 'admin_import_list' %}" class="text-primary-600 hover:text-primary-800 mr-2">
+                <i class="fas fa-arrow-left"></i> 
+            </a>
+            <h2 class="text-xl font-semibold">Tạo phiếu nhập kho mới</h2>
+        </div>
+        
+        <p class="text-gray-600">Nhập thông tin chi tiết để tạo phiếu nhập kho mới.</p>
+    </div>
+    
+    <form method="post" action="{% url 'admin_import_add' %}" id="importForm" class="space-y-6">
+        {% csrf_token %}
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Thông tin phiếu nhập -->
+            <div>
+                <h3 class="font-medium text-gray-700 text-lg mb-4">Thông tin phiếu nhập</h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label for="supplier" class="block text-sm font-medium text-gray-700">Nhà cung cấp <span class="text-red-500">*</span></label>
+                        <select id="supplier" name="supplier" required class="select2 mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                            <option value="">Chọn nhà cung cấp</option>
+                            {% for supplier in suppliers %}
+                                <option value="{{ supplier.id }}">{{ supplier.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="note" class="block text-sm font-medium text-gray-700">Ghi chú</label>
+                        <textarea id="note" name="note" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Hướng dẫn -->
+            <div class="bg-gray-50 p-4 rounded-md">
+                <h3 class="font-medium text-gray-700 text-lg mb-3">Hướng dẫn nhập kho</h3>
+                <ol class="list-decimal pl-5 space-y-2 text-sm">
+                    <li>Chọn nhà cung cấp từ danh sách</li>
+                    <li>Thêm các sản phẩm bằng cách nhấn "Thêm sản phẩm"</li>
+                    <li>Nhập số lượng và giá nhập cho từng sản phẩm</li>
+                    <li>Xem lại tổng tiền trước khi lưu</li>
+                    <li>Nhấn "Lưu phiếu nhập" để hoàn tất</li>
+                </ol>
+                <div class="mt-4 p-3 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700">
+                    <p class="text-sm">
+                        <i class="fas fa-info-circle mr-2"></i> Số lượng sản phẩm sẽ được tự động cập nhật vào kho sau khi lưu phiếu nhập.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Danh sách sản phẩm -->
+        <h3 class="font-medium text-gray-700 text-lg mt-6 mb-3">Chi tiết sản phẩm nhập kho</h3>
+        
+        <div class="border border-gray-200 rounded-md p-4">
+            <div id="productList">
+                <!-- Template cho sản phẩm -->
+                <div class="product-item border-b border-gray-200 pb-4 mb-4 hidden" id="productTemplate">
+                    <div class="grid grid-cols-12 gap-4">
+                        <div class="col-span-5">
+                            <label class="block text-sm font-medium text-gray-700">Sản phẩm <span class="text-red-500">*</span></label>
+                            <select name="products[]" class="product-select mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                                <option value="">Chọn sản phẩm</option>
+                                {% for product in products %}
+                                    <option value="{{ product.id }}">{{ product.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-span-3">
+                            <label class="block text-sm font-medium text-gray-700">Số lượng <span class="text-red-500">*</span></label>
+                            <input type="number" name="quantities[]" min="1" value="1" class="quantity-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        </div>
+                        <div class="col-span-3">
+                            <label class="block text-sm font-medium text-gray-700">Giá nhập (VNĐ) <span class="text-red-500">*</span></label>
+                            <input type="number" name="unit_prices[]" min="0" class="price-input mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        </div>
+                        <div class="col-span-1 flex items-end">
+                            <button type="button" class="remove-product text-red-500 hover:text-red-700 mt-1">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Nơi các sản phẩm sẽ được thêm vào -->
+                <div id="productItems"></div>
+                
+                <!-- Khi chưa có sản phẩm nào -->
+                <div id="noProducts" class="text-center py-6 text-gray-500">
+                    <p>Chưa có sản phẩm nào. Vui lòng thêm sản phẩm.</p>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <button type="button" id="addProduct" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-primary-700 bg-primary-100 hover:bg-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                    <i class="fas fa-plus mr-2"></i> Thêm sản phẩm
+                </button>
+            </div>
+        </div>
+        
+        <!-- Tổng tiền -->
+        <div class="flex justify-end">
+            <div class="w-64">
+                <div class="border-t border-gray-200 pt-4">
+                    <div class="flex justify-between font-medium">
+                        <span>Tổng tiền:</span>
+                        <span id="totalAmount">0 VNĐ</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+            <a href="{% url 'admin_import_list' %}" class="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                Hủy
+            </a>
+            <button type="submit" id="submitBtn" disabled class="bg-primary-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                Lưu phiếu nhập
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('.select2').select2();
+        
+        let productCount = 0;
+        
+        // Thêm sản phẩm mới
+        $('#addProduct').click(function() {
+            const template = $('#productTemplate').clone();
+            template.removeClass('hidden');
+            template.attr('id', 'product_' + productCount);
+            
+            // Khởi tạo select2 cho dropdown sản phẩm
+            template.find('.product-select').select2();
+            
+            // Thêm vào danh sách
+            $('#productItems').append(template);
+            $('#noProducts').hide();
+            
+            // Cập nhật nút submit
+            updateSubmitButton();
+            
+            // Tăng biến đếm
+            productCount++;
+        });
+        
+        // Xóa sản phẩm
+        $(document).on('click', '.remove-product', function() {
+            $(this).closest('.product-item').remove();
+            
+            if ($('#productItems .product-item').length === 0) {
+                $('#noProducts').show();
+            }
+            
+            updateTotal();
+            updateSubmitButton();
+        });
+        
+        // Cập nhật tổng tiền khi thay đổi số lượng hoặc giá
+        $(document).on('change', '.quantity-input, .price-input', function() {
+            updateTotal();
+        });
+        
+        // Cập nhật tổng tiền
+        function updateTotal() {
+            let total = 0;
+            
+            $('#productItems .product-item').each(function() {
+                const quantity = parseInt($(this).find('.quantity-input').val()) || 0;
+                const price = parseInt($(this).find('.price-input').val()) || 0;
+                total += quantity * price;
+            });
+            
+            // Format số với dấu phân cách hàng nghìn
+            const formattedTotal = new Intl.NumberFormat('vi-VN').format(total);
+            $('#totalAmount').text(formattedTotal + ' VNĐ');
+        }
+        
+        // Cập nhật trạng thái nút submit
+        function updateSubmitButton() {
+            const hasSupplier = $('#supplier').val() !== '';
+            const hasProducts = $('#productItems .product-item').length > 0;
+            
+            if (hasSupplier && hasProducts) {
+                $('#submitBtn').prop('disabled', false);
+            } else {
+                $('#submitBtn').prop('disabled', true);
+            }
+        }
+        
+        // Kiểm tra khi thay đổi nhà cung cấp
+        $('#supplier').change(function() {
+            updateSubmitButton();
+        });
+        
+        // Thêm sản phẩm đầu tiên
+        $('#addProduct').trigger('click');
+    });
+</script>
+{% endblock %}
