@@ -1,0 +1,116 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}Quản lý nhân viên - FShop Admin{% endblock %}
+{% block header_title %}Quản lý nhân viên{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-semibold">Danh sách nhân viên</h2>
+        <a href="{% url 'admin_employee_add' %}" class="bg-primary-600 hover:bg-primary-700 text-white py-2 px-4 rounded-md">
+            <i class="fas fa-user-plus mr-2"></i>Thêm nhân viên mới
+        </a>
+    </div>
+    
+    <!-- Tìm kiếm -->
+    <div class="mb-6">
+        <form action="{% url 'admin_employee_list' %}" method="get" class="flex">
+            <div class="relative flex-grow">
+                <input type="text" name="search" value="{{ search_query|default:'' }}" placeholder="Tìm kiếm nhân viên..." class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-gray-400"></i>
+                </div>
+            </div>
+            <button type="submit" class="ml-3 inline-flex items-center px-4 py-2 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:border-primary-700 focus:shadow-outline-primary active:bg-primary-700 transition ease-in-out duration-150">
+                Tìm kiếm
+            </button>
+        </form>
+    </div>
+    
+    <!-- Bảng nhân viên -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên nhân viên</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vai trò</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for employee in employees %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        {{ employee.id }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10">
+                                {% if employee.avatar %}
+                                <img class="h-10 w-10 rounded-full object-cover" src="{{ employee.avatar.url }}" alt="{{ employee.user.get_full_name }}">
+                                {% else %}
+                                <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">{{ employee.user.get_full_name|default:employee.user.username }}</div>
+                                <div class="text-sm text-gray-500">@{{ employee.user.username }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">{{ employee.user.email }}</div>
+                        <div class="text-sm text-gray-500">{{ employee.phone|default:"Chưa cập nhật" }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if employee.role %}
+                        <div class="text-sm text-gray-900">{{ employee.role.name }}</div>
+                        <div class="text-sm text-gray-500">{{ employee.role.role_permissions.count }} quyền</div>
+                        {% else %}
+                        <span class="text-sm text-gray-500">Chưa phân vai trò</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if employee.user.is_active %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            Đang hoạt động
+                        </span>
+                        {% else %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                            Đã vô hiệu hóa
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <a href="{% url 'admin_employee_edit' employee.id %}" class="text-primary-600 hover:text-primary-900 mr-3">
+                            <i class="fas fa-edit"></i> Sửa
+                        </a>
+                        {% if employee.user.is_active %}
+                        <a href="#" class="text-red-600 hover:text-red-900">
+                            <i class="fas fa-ban"></i> Vô hiệu hóa
+                        </a>
+                        {% else %}
+                        <a href="#" class="text-green-600 hover:text-green-900">
+                            <i class="fas fa-check-circle"></i> Kích hoạt
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+                        Chưa có nhân viên nào. <a href="{% url 'admin_employee_add' %}" class="text-primary-600">Thêm nhân viên mới</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %} 

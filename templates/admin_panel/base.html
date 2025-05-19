@@ -1,3 +1,5 @@
+{% load static %}
+{% load custom_filters %}
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -87,51 +89,79 @@
                         <i class="fas fa-tachometer-alt mr-2"></i> Tổng quan
                     </a>
                 </li>
+                
+                {% if request.user.employee|has_any_perm:'product_view,product_add,product_edit,product_delete' %}
                 <li>
                     <a href="{% url 'admin_product_list' %}" class="block px-4 py-2 {% if '/admin-panel/products' in request.path %}bg-primary-50 text-primary-600 border-l-4 border-primary-600{% else %}text-gray-600 hover:bg-gray-50{% endif %}">
                         <i class="fas fa-couch mr-2"></i> Sản phẩm
                     </a>
                 </li>
+                {% endif %}
+                
+                {% if request.user.employee|has_any_perm:'category_view,category_add,category_edit,category_delete' %}
                 <li>
                     <a href="{% url 'admin_category_list' %}" class="block px-4 py-2 {% if '/admin-panel/categories' in request.path %}bg-primary-50 text-primary-600 border-l-4 border-primary-600{% else %}text-gray-600 hover:bg-gray-50{% endif %}">
                         <i class="fas fa-tags mr-2"></i> Danh mục
                     </a>
                 </li>
+                {% endif %}
+                
+                {% if request.user.employee|has_any_perm:'brand_view,brand_add,brand_edit,brand_delete' %}
                 <li>
                     <a href="{% url 'admin_brand_list' %}" class="block px-4 py-2 {% if '/admin-panel/brands' in request.path %}bg-primary-50 text-primary-600 border-l-4 border-primary-600{% else %}text-gray-600 hover:bg-gray-50{% endif %}">
                         <i class="fas fa-copyright mr-2"></i> Thương hiệu
                     </a>
                 </li>
+                {% endif %}
+                
+                {% if request.user.employee|has_any_perm:'order_view,order_update,order_detail' %}
                 <li>
                     <a href="{% url 'admin_order_list' %}" class="block px-4 py-2 {% if '/admin-panel/orders' in request.path %}bg-primary-50 text-primary-600 border-l-4 border-primary-600{% else %}text-gray-600 hover:bg-gray-50{% endif %}">
                         <i class="fas fa-shopping-bag mr-2"></i> Đơn hàng
                     </a>
                 </li>
+                {% endif %}
+                
+                {% if request.user.employee|has_any_perm:'customer_view,customer_detail' %}
                 <li>
                     <a href="{% url 'admin_customer_list' %}" class="block px-4 py-2 {% if '/admin-panel/customers' in request.path %}bg-primary-50 text-primary-600 border-l-4 border-primary-600{% else %}text-gray-600 hover:bg-gray-50{% endif %}">
                         <i class="fas fa-users mr-2"></i> Khách hàng
                     </a>
                 </li>
+                {% endif %}
+                
+                {% if request.user.employee|has_any_perm:'import_view,import_add,import_detail' %}
                 <li>
                     <a href="{% url 'admin_import_list' %}" class="block px-4 py-2 {% if '/admin-panel/imports' in request.path %}bg-primary-50 text-primary-600 border-l-4 border-primary-600{% else %}text-gray-600 hover:bg-gray-50{% endif %}">
                         <i class="fas fa-boxes mr-2"></i> Nhập kho
                     </a>
                 </li>
+                {% endif %}
+                
+                {% if request.user.employee|has_any_perm:'supplier_view,supplier_add,supplier_edit,supplier_delete' %}
                 <li>
                     <a href="{% url 'admin_supplier_list' %}" class="block px-4 py-2 {% if '/admin-panel/suppliers' in request.path %}bg-primary-50 text-primary-600 border-l-4 border-primary-600{% else %}text-gray-600 hover:bg-gray-50{% endif %}">
                         <i class="fas fa-truck mr-2"></i> Nhà cung cấp
                     </a>
                 </li>
+                {% endif %}
+                
+                {% if request.user.employee|has_any_perm:'report_view,stat_product,stat_customer,stat_sales' %}
                 <li>
                     <a href="{% url 'admin_reports' %}" class="block px-4 py-2 {% if '/admin-panel/reports' in request.path %}bg-primary-50 text-primary-600 border-l-4 border-primary-600{% else %}text-gray-600 hover:bg-gray-50{% endif %}">
                         <i class="fas fa-chart-bar mr-2"></i> Báo cáo
                     </a>
                 </li>
+                {% endif %}
+                
+                {% if request.user.employee|has_any_perm:'role_view,role_add,role_edit,role_delete' %}
                 <li>
                     <a href="{% url 'admin_role_list' %}" class="block px-4 py-2 {% if '/admin-panel/roles' in request.path %}bg-primary-50 text-primary-600 border-l-4 border-primary-600{% else %}text-gray-600 hover:bg-gray-50{% endif %}">
                         <i class="fas fa-user-shield mr-2"></i> Phân quyền
                     </a>
                 </li>
+                {% endif %}
+                
                 <li>
                     <a href="{% url 'admin_settings' %}" class="block px-4 py-2 {% if '/admin-panel/settings' in request.path %}bg-primary-50 text-primary-600 border-l-4 border-primary-600{% else %}text-gray-600 hover:bg-gray-50{% endif %}">
                         <i class="fas fa-cog mr-2"></i> Cài đặt

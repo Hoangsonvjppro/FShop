@@ -1,0 +1,51 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}Không có quyền truy cập - FShop Admin{% endblock %}
+{% block header_title %}Không có quyền truy cập{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-sm p-8 mb-6 text-center">
+    <div class="mb-6">
+        <div class="flex justify-center">
+            <div class="bg-red-100 rounded-full p-4 mx-auto">
+                <svg class="w-16 h-16 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+            </div>
+        </div>
+        <h2 class="text-2xl font-bold text-red-600 mt-4">Không đủ quyền truy cập</h2>
+        <p class="text-gray-600 mt-2">Bạn không có quyền để truy cập trang này hoặc thực hiện thao tác này.</p>
+    </div>
+    
+    <div class="bg-gray-50 p-4 rounded-md mb-6 mx-auto max-w-lg">
+        <h3 class="font-medium mb-2 text-left">Thông tin vai trò của bạn:</h3>
+        <ul class="text-left mb-4">
+            <li class="flex items-center"><span class="font-medium mr-2">Vai trò:</span> {{ request.user.employee.role.name|default:"Chưa được phân vai trò" }}</li>
+            {% if request.user.employee.role %}
+            <li class="flex items-center mt-1"><span class="font-medium mr-2">Số lượng quyền:</span> {{ request.user.employee.role.role_permissions.count }}</li>
+            {% endif %}
+        </ul>
+        
+        {% if missing_permissions %}
+        <div class="text-left">
+            <p class="font-medium">Bạn cần có các quyền sau để truy cập trang này:</p>
+            <ul class="list-disc pl-5 mt-1 space-y-1">
+                {% for perm in missing_permissions %}
+                <li>{{ perm }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="flex justify-center space-x-4">
+        <a href="javascript:history.back()" class="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+            <i class="fas fa-arrow-left mr-2"></i> Quay lại
+        </a>
+        <a href="{% url 'admin_dashboard' %}" class="bg-primary-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+            <i class="fas fa-home mr-2"></i> Về trang chủ
+        </a>
+    </div>
+</div>
+{% endblock %} 

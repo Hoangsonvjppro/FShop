@@ -56,5 +56,42 @@ def create_superuser():
         create_default_permissions()
 
 
+def create_sudo_user():
+    """
+    Tạo tài khoản sudo với đầy đủ quyền truy cập
+    """
+    username = 'sudo'
+    email = 'sudo@example.com'
+    password = '123'
+    
+    # Kiểm tra xem sudo user đã tồn tại chưa
+    if not User.objects.filter(username=username).exists():
+        print(f"Tạo tài khoản sudo: {username}")
+        user = User.objects.create_superuser(
+            username=username,
+            email=email,
+            password=password
+        )
+        
+        # Đảm bảo các quyền mặc định đã được tạo
+        create_default_permissions()
+        
+        # Gán vai trò admin cho sudo user
+        admin_role = Role.objects.get(name="Admin")
+        Employee.objects.create(
+            user=user,
+            role=admin_role,
+            phone='0987654321',
+            address='Sudo address'
+        )
+        
+        print("Tài khoản sudo đã được tạo thành công!")
+        print(f"Username: {username}")
+        print(f"Password: {password}")
+    else:
+        print(f"Sudo user {username} đã tồn tại.")
+
+
 if __name__ == '__main__':
-    create_superuser() 
+    create_superuser()
+    create_sudo_user() 

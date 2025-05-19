@@ -1,0 +1,137 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}Thêm nhân viên mới - FShop Admin{% endblock %}
+{% block header_title %}Thêm nhân viên mới{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+    <div class="mb-6">
+        <div class="flex items-center mb-6">
+            <a href="{{ request.META.HTTP_REFERER|default:'javascript:history.back()' }}" class="text-primary-600 hover:text-primary-800 mr-2">
+                <i class="fas fa-arrow-left"></i> 
+            </a>
+            <h2 class="text-xl font-semibold">Thêm nhân viên mới</h2>
+        </div>
+        
+        <p class="text-gray-600">Tạo tài khoản nhân viên mới và cấp quyền truy cập vào hệ thống.</p>
+    </div>
+    
+    <form method="post" action="{% url 'admin_employee_add' %}" class="space-y-6">
+        {% csrf_token %}
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Thông tin cơ bản -->
+            <div class="space-y-4">
+                <h3 class="font-medium text-gray-700 text-lg">Thông tin cá nhân</h3>
+                
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700">Tên đăng nhập <span class="text-red-500">*</span></label>
+                    <input type="text" id="username" name="username" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+                
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">Email <span class="text-red-500">*</span></label>
+                    <input type="email" id="email" name="email" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="first_name" class="block text-sm font-medium text-gray-700">Tên</label>
+                        <input type="text" id="first_name" name="first_name" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    </div>
+                    
+                    <div>
+                        <label for="last_name" class="block text-sm font-medium text-gray-700">Họ</label>
+                        <input type="text" id="last_name" name="last_name" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700">Mật khẩu <span class="text-red-500">*</span></label>
+                    <input type="password" id="password" name="password" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+                
+                <div>
+                    <label for="phone" class="block text-sm font-medium text-gray-700">Số điện thoại</label>
+                    <input type="tel" id="phone" name="phone" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+            </div>
+            
+            <!-- Quyền và vai trò -->
+            <div>
+                <h3 class="font-medium text-gray-700 text-lg mb-4">Vai trò & Quyền hạn</h3>
+                
+                <div class="mb-6">
+                    <label for="role" class="block text-sm font-medium text-gray-700">Vai trò <span class="text-red-500">*</span></label>
+                    <select id="role" name="role" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" onchange="showRoleDetails(this.value)">
+                        <option value="">-- Chọn vai trò --</option>
+                        {% for role in roles %}
+                        <option value="{{ role.id }}"
+                            data-permissions="{{ role.role_permissions.count }}"
+                            data-employees="{{ role.employees.count }}">
+                            {{ role.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Hiển thị chi tiết vai trò đã chọn -->
+                <div id="roleDetails" class="border border-gray-200 rounded-md p-4 bg-gray-50">
+                    <h4 class="font-medium text-sm mb-2">Chi tiết vai trò</h4>
+                    <div id="roleInfo" class="text-sm">
+                        <p class="text-gray-500">Vui lòng chọn vai trò để xem chi tiết</p>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <div id="permissionList" class="text-sm">
+                            <!-- Danh sách quyền sẽ được cập nhật qua JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+            <a href="{{ request.META.HTTP_REFERER|default:'javascript:history.back()' }}" class="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                Hủy
+            </a>
+            <button type="submit" class="bg-primary-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                Tạo nhân viên
+            </button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Hiển thị chi tiết vai trò khi thay đổi lựa chọn
+    function showRoleDetails(roleId) {
+        if (!roleId) {
+            document.getElementById('roleInfo').innerHTML = '<p class="text-gray-500">Vui lòng chọn vai trò để xem chi tiết</p>';
+            document.getElementById('permissionList').innerHTML = '';
+            return;
+        }
+        
+        const selectedOption = document.querySelector(`#role option[value="${roleId}"]`);
+        const roleName = selectedOption.textContent.trim();
+        const permissionCount = selectedOption.getAttribute('data-permissions');
+        const employeeCount = selectedOption.getAttribute('data-employees');
+        
+        document.getElementById('roleInfo').innerHTML = `
+            <p><span class="font-medium">Vai trò:</span> ${roleName}</p>
+            <p><span class="font-medium">Số lượng quyền:</span> ${permissionCount}</p>
+            <p><span class="font-medium">Số nhân viên đang sử dụng:</span> ${employeeCount}</p>
+        `;
+        
+        // Hiển thị thông báo về quyền mà không gọi API
+        document.getElementById('permissionList').innerHTML = `
+            <p class="font-medium mb-1">Danh sách quyền:</p>
+            <p class="text-sm text-gray-600">Vai trò "${roleName}" có ${permissionCount} quyền.</p>
+            <p class="text-sm text-gray-600 mt-1">Bạn có thể xem chi tiết quyền trong <a href="/admin-panel/roles/" class="text-primary-600 hover:underline">quản lý vai trò</a>.</p>
+        `;
+    }
+</script>
+{% endblock %} 

@@ -157,11 +157,15 @@ def permission_required(permission_code):
             
             # Kiểm tra người dùng có quyền không
             if not hasattr(request.user, 'employee'):
-                return HttpResponseForbidden("Bạn không có quyền truy cập trang này")
+                return render(request, 'admin_panel/permission_denied.html', {
+                    'missing_permissions': [permission_code]
+                })
                 
             if not request.user.employee.has_permission(permission_code):
-                messages.error(request, f'Bạn không có quyền {permission_code} để thực hiện chức năng này')
-                return redirect('admin_dashboard')
+                # Trả về trang lỗi không có quyền truy cập
+                return render(request, 'admin_panel/permission_denied.html', {
+                    'missing_permissions': [permission_code]
+                })
                 
             return view_func(request, *args, **kwargs)
         return _wrapped_view
@@ -181,7 +185,9 @@ def permissions_required(permission_codes):
             
             # Kiểm tra người dùng có quyền không
             if not hasattr(request.user, 'employee'):
-                return HttpResponseForbidden("Bạn không có quyền truy cập trang này")
+                return render(request, 'admin_panel/permission_denied.html', {
+                    'missing_permissions': permission_codes
+                })
                 
             if not request.user.employee.has_permissions(permission_codes):
                 missing_permissions = []
@@ -189,8 +195,10 @@ def permissions_required(permission_codes):
                     if not request.user.employee.has_permission(code):
                         missing_permissions.append(code)
                 
-                messages.error(request, f'Bạn không có đủ quyền để thực hiện chức năng này. Thiếu quyền: {", ".join(missing_permissions)}')
-                return redirect('admin_dashboard')
+                # Trả về trang lỗi không có quyền truy cập
+                return render(request, 'admin_panel/permission_denied.html', {
+                    'missing_permissions': missing_permissions
+                })
                 
             return view_func(request, *args, **kwargs)
         return _wrapped_view
@@ -210,11 +218,15 @@ def any_permission_required(permission_codes):
             
             # Kiểm tra người dùng có quyền không
             if not hasattr(request.user, 'employee'):
-                return HttpResponseForbidden("Bạn không có quyền truy cập trang này")
+                return render(request, 'admin_panel/permission_denied.html', {
+                    'missing_permissions': permission_codes
+                })
                 
             if not request.user.employee.has_any_permission(permission_codes):
-                messages.error(request, f'Bạn cần có một trong các quyền sau để thực hiện chức năng này: {", ".join(permission_codes)}')
-                return redirect('admin_dashboard')
+                # Trả về trang lỗi không có quyền truy cập
+                return render(request, 'admin_panel/permission_denied.html', {
+                    'missing_permissions': permission_codes
+                })
                 
             return view_func(request, *args, **kwargs)
         return _wrapped_view
@@ -289,38 +301,59 @@ def calculate_percent_change(current, previous):
 @permission_required('product_view')
 def product_list(request):
     """Danh sách sản phẩm."""
-    products = Product.objects.all()
-    
-    # Lọc sản phẩm
-    filter_option = request.GET.get('filter', '')
-    if filter_option == 'available':
-        products = products.filter(available=True, is_deleted=False)
-    elif filter_option == 'out_of_stock':
-        products = products.filter(stock=0, is_deleted=False)
-    elif filter_option == 'low_stock':
-        products = products.filter(stock__lte=5, stock__gt=0, is_deleted=False)
-    elif filter_option == 'deleted':
-        products = products.filter(is_deleted=True)
-    
-    # Tìm kiếm
-    search_query = request.GET.get('search', '')
-    if search_query:
-        products = products.filter(
-            Q(name__icontains=search_query) | 
-            Q(description__icontains=search_query) |
-            Q(category__name__icontains=search_query) |
-            Q(brand__name__icontains=search_query)
-        )
-    
-    context = {
-        'products': products,
-        'filter': filter_option,
-        'search_query': search_query,
-        'categories': Category.objects.all(),
-        'brands': Brand.objects.all(),
-    }
-    
-    return render(request, 'admin_panel/product_list.html', context)
+    try:
+        products = Product.objects.all()
+        
+        # Lọc sản phẩm
+        filter_option = request.GET.get('filter', '')
+        if filter_option == 'available':
+            products = products.filter(available=True, is_deleted=False)
+        elif filter_option == 'out_of_stock':
+            products = products.filter(stock=0, is_deleted=False)
+        elif filter_option == 'low_stock':
+            products = products.filter(stock__lte=5, stock__gt=0, is_deleted=False)
+        elif filter_option == 'deleted':
+            products = products.filter(is_deleted=True)
+        
+        # Tìm kiếm
+        search_query = request.GET.get('search', '')
+        if search_query:
+            products = products.filter(
+                Q(name__icontains=search_query) | 
+                Q(description__icontains=search_query) |
+                Q(category__name__icontains=search_query) |
+                Q(brand__name__icontains=search_query)
+            )
+        
+        # Chuyển đổi queryset thành list để xử lý các giá trị không hợp lệ
+        product_list = []
+        for product in products:
+            try:
+                # Kiểm tra giá trị price
+                if not isinstance(product.price, (int, float, complex)) and product.price is not None:
+                    # Nếu price không phải số và không phải None, thử chuyển đổi
+                    try:
+                        product.price = float(str(product.price).replace(',', ''))
+                    except (ValueError, TypeError):
+                        product.price = 0
+                product_list.append(product)
+            except Exception:
+                # Bỏ qua sản phẩm có dữ liệu lỗi
+                continue
+        
+        context = {
+            'products': product_list,
+            'filter': filter_option,
+            'search_query': search_query,
+            'categories': Category.objects.all(),
+            'brands': Brand.objects.all(),
+        }
+        
+        return render(request, 'admin_panel/product_list.html', context)
+    except Exception as e:
+        # Trong trường hợp có lỗi không xác định, hiển thị thông báo lỗi
+        messages.error(request, f'Đã xảy ra lỗi khi tải danh sách sản phẩm: {str(e)}')
+        return redirect('admin_dashboard')
 
 
 @login_required
@@ -333,12 +366,32 @@ def product_add(request):
         category_id = request.POST.get('category')
         brand_id = request.POST.get('brand')
         description = request.POST.get('description')
-        price = request.POST.get('price')
-        stock = request.POST.get('stock')
+        
+        # Xử lý giá tiền để đảm bảo là số hợp lệ
+        try:
+            price = request.POST.get('price', '0')
+            # Xóa dấu phẩy hàng nghìn nếu có
+            price = price.replace(',', '')
+            price = float(price)
+        except (ValueError, TypeError):
+            price = 0
+            
+        # Xử lý số lượng tồn kho
+        try:
+            stock = int(request.POST.get('stock', '0'))
+        except (ValueError, TypeError):
+            stock = 0
+            
         room_type = request.POST.get('room_type')
         material = request.POST.get('material')
         dimensions = request.POST.get('dimensions')
-        weight = request.POST.get('weight')
+        
+        # Xử lý trọng lượng
+        try:
+            weight = float(request.POST.get('weight', '0'))
+        except (ValueError, TypeError):
+            weight = 0
+            
         warranty = request.POST.get('warranty')
         
         # Tạo sản phẩm mới
@@ -392,12 +445,33 @@ def product_edit(request, product_id):
         product.category_id = request.POST.get('category')
         product.brand_id = request.POST.get('brand')
         product.description = request.POST.get('description')
-        product.price = request.POST.get('price')
-        product.stock = request.POST.get('stock')
+        
+        # Xử lý giá tiền để đảm bảo là số hợp lệ
+        try:
+            price = request.POST.get('price', '0')
+            # Xóa dấu phẩy hàng nghìn nếu có
+            price = price.replace(',', '')
+            product.price = float(price)
+        except (ValueError, TypeError):
+            product.price = 0
+            
+        # Xử lý số lượng tồn kho
+        try:
+            product.stock = int(request.POST.get('stock', '0'))
+        except (ValueError, TypeError):
+            product.stock = 0
+            
         product.room_type = request.POST.get('room_type')
         product.material = request.POST.get('material')
         product.dimensions = request.POST.get('dimensions')
-        product.weight = request.POST.get('weight')
+        
+        # Xử lý trọng lượng
+        try:
+            weight = request.POST.get('weight', '0')
+            product.weight = float(weight)
+        except (ValueError, TypeError):
+            product.weight = 0
+            
         product.warranty = request.POST.get('warranty')
         product.available = 'available' in request.POST
         product.is_deleted = 'is_deleted' in request.POST
@@ -1121,7 +1195,7 @@ def import_add(request):
     """Thêm phiếu nhập mới."""
     if request.method == 'POST':
         supplier_id = request.POST.get('supplier')
-        employee_id = request.employee.id  # Nhân viên đang đăng nhập
+        employee_id = request.user.employee.id  # Nhân viên đang đăng nhập
         note = request.POST.get('note')
         
         # Tạo phiếu nhập mới
@@ -1139,21 +1213,35 @@ def import_add(request):
         
         total = 0
         for i in range(len(products)):
-            product_id = products[i]
-            quantity = int(quantities[i])
-            unit_price = int(unit_prices[i])
+            if not products[i]:  # Bỏ qua dòng trống
+                continue
+                
+            # Xử lý số lượng
+            try:
+                quantity = int(quantities[i]) if quantities[i] else 1
+            except (ValueError, TypeError):
+                quantity = 1
+                
+            # Xử lý đơn giá
+            try:
+                unit_price_str = unit_prices[i].strip() if unit_prices[i] else '0'
+                unit_price_str = unit_price_str.replace(',', '')  # Xóa dấu phẩy nếu có
+                unit_price = int(float(unit_price_str))
+            except (ValueError, TypeError):
+                unit_price = 0
+                
             subtotal = quantity * unit_price
             
             # Tạo chi tiết phiếu nhập
             ImportDetail.objects.create(
                 import_obj=import_obj,
-                product_id=product_id,
+                product_id=products[i],
                 quantity=quantity,
                 unit_price=unit_price
             )
             
             # Cập nhật số lượng tồn kho
-            product = Product.objects.get(id=product_id)
+            product = Product.objects.get(id=products[i])
             product.stock += quantity
             product.save()
             
