@@ -52,6 +52,13 @@ class Role(models.Model):
         if not self.slug:
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
+    
+    def has_permission(self, permission_code):
+        """Kiểm tra xem vai trò có quyền với mã code đã cho không"""
+        return Permission.objects.filter(
+            rolepermission__role=self,
+            code=permission_code
+        ).exists()
 
 
 class Permission(models.Model):
@@ -67,8 +74,8 @@ class Permission(models.Model):
 
 
 class RolePermission(models.Model):
-    role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name='permissions', verbose_name="Vai trò")
-    permission = models.ForeignKey(Permission, on_delete=models.CASCADE, verbose_name="Quyền")
+    role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name='role_permissions', verbose_name="Vai trò")
+    permission = models.ForeignKey(Permission, on_delete=models.CASCADE, related_name='role_permissions', verbose_name="Quyền")
     
     class Meta:
         verbose_name = "Quyền của vai trò"
@@ -97,6 +104,35 @@ class Employee(models.Model):
         return self.user.get_full_name() or self.user.username
         
     def has_permission(self, permission_code):
+        """Kiểm tra người dùng có quyền với mã code đã cho không"""
         if not self.role:
             return False
-        return self.role.permissions.filter(permission__code=permission_code).exists() 
+        
+        return Permission.objects.filter(
+            role_permissions__role=self.role,
+            code=permission_code
+        ).exists()
+    
+    def has_permissions(self, permission_codes):
+        """Kiểm tra người dùng có tất cả các quyền được chỉ định hay không"""
+        if not self.role:
+            return False
+        
+        # Đếm số lượng quyền thỏa điều kiện
+        count = Permission.objects.filter(
+            role_permissions__role=self.role,
+            code__in=permission_codes
+        ).count()
+        
+        # Trả về True nếu có đủ tất cả quyền
+        return count == len(permission_codes)
+    
+    def has_any_permission(self, permission_codes):
+        """Kiểm tra người dùng có bất kỳ quyền nào trong danh sách"""
+        if not self.role:
+            return False
+        
+        return Permission.objects.filter(
+            role_permissions__role=self.role,
+            code__in=permission_codes
+        ).exists() 

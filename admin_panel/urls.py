@@ -1,8 +1,39 @@
 from django.urls import path
 from . import views
+from django.http import JsonResponse
+from accounts.models import Role, RolePermission
+
+def get_role_permissions(request, role_id):
+    """API endpoint để lấy danh sách quyền của vai trò"""
+    try:
+        role = Role.objects.get(id=role_id)
+        permissions = []
+        
+        for role_perm in RolePermission.objects.filter(role=role).select_related('permission'):
+            permission = role_perm.permission
+            permissions.append({
+                'id': permission.id,
+                'name': permission.name,
+                'code': permission.code
+            })
+        
+        return JsonResponse({
+            'success': True, 
+            'role_id': role.id,
+            'role_name': role.name,
+            'permissions': permissions
+        })
+    except Role.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Vai trò không tồn tại'
+        }, status=404)
 
 urlpatterns = [
     path('', views.dashboard, name='admin_dashboard'),
+    
+    # API endpoints
+    path('api/roles/<int:role_id>/permissions/', get_role_permissions, name='api_role_permissions'),
     
     # Sản phẩm
     path('products/', views.product_list, name='admin_product_list'),

@@ -1,0 +1,176 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}Chỉnh sửa nhân viên - FShop Admin{% endblock %}
+{% block header_title %}Chỉnh sửa nhân viên{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+    <div class="mb-6">
+        <div class="flex items-center mb-6">
+            <a href="{% url 'admin_employee_list' %}" class="text-primary-600 hover:text-primary-800 mr-2">
+                <i class="fas fa-arrow-left"></i> 
+            </a>
+            <h2 class="text-xl font-semibold">Chỉnh sửa thông tin nhân viên</h2>
+        </div>
+        
+        <p class="text-gray-600">Cập nhật thông tin và quyền truy cập cho nhân viên.</p>
+    </div>
+    
+    <form method="post" action="{% url 'admin_employee_edit' employee.id %}" class="space-y-6">
+        {% csrf_token %}
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Thông tin cơ bản -->
+            <div class="space-y-4">
+                <h3 class="font-medium text-gray-700 text-lg">Thông tin cá nhân</h3>
+                
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700">Tên đăng nhập</label>
+                    <input type="text" id="username" name="username" value="{{ employee.user.username }}" disabled class="mt-1 bg-gray-100 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+                
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">Email <span class="text-red-500">*</span></label>
+                    <input type="email" id="email" name="email" value="{{ employee.user.email }}" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="first_name" class="block text-sm font-medium text-gray-700">Tên</label>
+                        <input type="text" id="first_name" name="first_name" value="{{ employee.user.first_name }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    </div>
+                    
+                    <div>
+                        <label for="last_name" class="block text-sm font-medium text-gray-700">Họ</label>
+                        <input type="text" id="last_name" name="last_name" value="{{ employee.user.last_name }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700">Mật khẩu mới</label>
+                    <input type="password" id="password" name="password" placeholder="Để trống nếu không thay đổi" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+                
+                <div>
+                    <label for="phone" class="block text-sm font-medium text-gray-700">Số điện thoại</label>
+                    <input type="tel" id="phone" name="phone" value="{{ employee.phone }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+            </div>
+            
+            <!-- Quyền và vai trò -->
+            <div>
+                <h3 class="font-medium text-gray-700 text-lg mb-4">Vai trò & Quyền hạn</h3>
+                
+                <div class="mb-6">
+                    <label for="role" class="block text-sm font-medium text-gray-700">Vai trò <span class="text-red-500">*</span></label>
+                    <select id="role" name="role" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" onchange="showRoleDetails(this.value)">
+                        <option value="">-- Chọn vai trò --</option>
+                        {% for role in roles %}
+                        <option value="{{ role.id }}" {% if employee.role.id == role.id %}selected{% endif %}
+                            data-permissions="{{ role.role_permissions.count }}"
+                            data-employees="{{ role.employees.count }}">
+                            {{ role.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Hiển thị chi tiết vai trò đã chọn -->
+                <div id="roleDetails" class="border border-gray-200 rounded-md p-4 bg-gray-50">
+                    <h4 class="font-medium text-sm mb-2">Chi tiết vai trò</h4>
+                    <div id="roleInfo" class="text-sm">
+                        {% if employee.role %}
+                        <p><span class="font-medium">Vai trò:</span> {{ employee.role.name }}</p>
+                        <p><span class="font-medium">Số lượng quyền:</span> {{ employee.role.role_permissions.count }}</p>
+                        <p><span class="font-medium">Số nhân viên đang sử dụng:</span> {{ employee.role.employees.count }}</p>
+                        {% else %}
+                        <p class="text-gray-500">Vui lòng chọn vai trò để xem chi tiết</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mt-3">
+                        <div id="permissionList" class="text-sm">
+                            {% if employee.role %}
+                            <p class="font-medium mb-1">Danh sách quyền:</p>
+                            <ul class="list-disc pl-5 space-y-1 mt-2 max-h-32 overflow-y-auto">
+                                {% for role_permission in employee.role.role_permissions.all %}
+                                <li>{{ role_permission.permission.name }} ({{ role_permission.permission.code }})</li>
+                                {% empty %}
+                                <li class="text-gray-500">Không có quyền nào</li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+            <a href="{% url 'admin_employee_list' %}" class="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                Hủy
+            </a>
+            <button type="submit" class="bg-primary-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                Lưu thay đổi
+            </button>
+        </div>
+    </form>
+</div>
+
+{% block extra_js %}
+<script>
+    // Hiển thị chi tiết vai trò khi thay đổi lựa chọn
+    function showRoleDetails(roleId) {
+        if (!roleId) {
+            document.getElementById('roleInfo').innerHTML = '<p class="text-gray-500">Vui lòng chọn vai trò để xem chi tiết</p>';
+            document.getElementById('permissionList').innerHTML = '';
+            return;
+        }
+        
+        const selectedOption = document.querySelector(`option[value="${roleId}"]`);
+        const roleName = selectedOption.textContent.trim();
+        const permissionCount = selectedOption.dataset.permissions;
+        const employeeCount = selectedOption.dataset.employees;
+        
+        // Cập nhật thông tin vai trò
+        document.getElementById('roleInfo').innerHTML = `
+            <p><span class="font-medium">Vai trò:</span> ${roleName}</p>
+            <p><span class="font-medium">Số lượng quyền:</span> ${permissionCount}</p>
+            <p><span class="font-medium">Số nhân viên đang sử dụng:</span> ${employeeCount}</p>
+        `;
+        
+        // Gọi AJAX để lấy danh sách quyền của vai trò
+        fetch(`/admin-panel/api/roles/${roleId}/permissions/`)
+            .then(response => response.json())
+            .then(data => {
+                let permissionHtml = '<p class="font-medium mb-1">Danh sách quyền:</p>';
+                permissionHtml += '<ul class="list-disc pl-5 space-y-1 mt-2 max-h-32 overflow-y-auto">';
+                
+                if (data.permissions && data.permissions.length > 0) {
+                    data.permissions.forEach(perm => {
+                        permissionHtml += `<li>${perm.name} (${perm.code})</li>`;
+                    });
+                } else {
+                    permissionHtml += '<li class="text-gray-500">Không có quyền nào</li>';
+                }
+                
+                permissionHtml += '</ul>';
+                document.getElementById('permissionList').innerHTML = permissionHtml;
+            })
+            .catch(error => {
+                console.error('Error fetching permissions:', error);
+                document.getElementById('permissionList').innerHTML = '<p class="text-red-500">Không thể tải danh sách quyền</p>';
+            });
+    }
+    
+    // Khởi tạo ban đầu
+    document.addEventListener('DOMContentLoaded', function() {
+        const roleSelect = document.getElementById('role');
+        if (roleSelect.value) {
+            showRoleDetails(roleSelect.value);
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %} 

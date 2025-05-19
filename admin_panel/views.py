@@ -4,10 +4,136 @@ from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Sum, Count, Q
 from datetime import timedelta
-from accounts.models import Customer, Employee, Role, Permission
+from accounts.models import Customer, Employee, Role, Permission, RolePermission
 from products.models import Product, Category, Brand, ProductImage, Supplier, Import, ImportDetail
 from orders.models import Order, OrderItem
 from django.contrib.auth.models import User
+from django.http import HttpResponseForbidden
+from functools import wraps
+
+
+def create_default_permissions():
+    """
+    Tạo các quyền mặc định trong hệ thống.
+    Hàm này nên được gọi khi khởi tạo database
+    """
+    default_permissions = [
+        # Quyền quản lý sản phẩm
+        {"code": "product_view", "name": "Xem danh sách sản phẩm"},
+        {"code": "product_add", "name": "Thêm sản phẩm mới"},
+        {"code": "product_edit", "name": "Chỉnh sửa sản phẩm"},
+        {"code": "product_delete", "name": "Xóa sản phẩm"},
+        
+        # Quyền quản lý danh mục
+        {"code": "category_view", "name": "Xem danh sách danh mục"},
+        {"code": "category_add", "name": "Thêm danh mục mới"},
+        {"code": "category_edit", "name": "Chỉnh sửa danh mục"},
+        {"code": "category_delete", "name": "Xóa danh mục"},
+        
+        # Quyền quản lý thương hiệu
+        {"code": "brand_view", "name": "Xem danh sách thương hiệu"},
+        {"code": "brand_add", "name": "Thêm thương hiệu mới"},
+        {"code": "brand_edit", "name": "Chỉnh sửa thương hiệu"},
+        {"code": "brand_delete", "name": "Xóa thương hiệu"},
+        
+        # Quyền quản lý đơn hàng
+        {"code": "order_view", "name": "Xem danh sách đơn hàng"},
+        {"code": "order_detail", "name": "Xem chi tiết đơn hàng"},
+        {"code": "order_update", "name": "Cập nhật trạng thái đơn hàng"},
+        {"code": "order_cancel", "name": "Hủy đơn hàng"},
+        
+        # Quyền quản lý khách hàng
+        {"code": "customer_view", "name": "Xem danh sách khách hàng"},
+        {"code": "customer_detail", "name": "Xem chi tiết khách hàng"},
+        {"code": "customer_update", "name": "Cập nhật thông tin khách hàng"},
+        
+        # Quyền quản lý nhân viên
+        {"code": "employee_view", "name": "Xem danh sách nhân viên"},
+        {"code": "employee_add", "name": "Thêm nhân viên mới"},
+        {"code": "employee_edit", "name": "Chỉnh sửa thông tin nhân viên"},
+        {"code": "employee_delete", "name": "Xóa nhân viên"},
+        
+        # Quyền quản lý vai trò
+        {"code": "role_view", "name": "Xem danh sách vai trò"},
+        {"code": "role_add", "name": "Thêm vai trò mới"},
+        {"code": "role_edit", "name": "Chỉnh sửa vai trò"},
+        {"code": "role_delete", "name": "Xóa vai trò"},
+        
+        # Quyền quản lý nhà cung cấp
+        {"code": "supplier_view", "name": "Xem danh sách nhà cung cấp"},
+        {"code": "supplier_add", "name": "Thêm nhà cung cấp mới"},
+        {"code": "supplier_edit", "name": "Chỉnh sửa nhà cung cấp"},
+        {"code": "supplier_delete", "name": "Xóa nhà cung cấp"},
+        
+        # Quyền quản lý nhập kho
+        {"code": "import_view", "name": "Xem danh sách phiếu nhập kho"},
+        {"code": "import_add", "name": "Tạo phiếu nhập kho mới"},
+        {"code": "import_detail", "name": "Xem chi tiết phiếu nhập kho"},
+        
+        # Quyền xem báo cáo thống kê
+        {"code": "report_view", "name": "Xem báo cáo thống kê"},
+        {"code": "stat_product", "name": "Xem thống kê sản phẩm"},
+        {"code": "stat_customer", "name": "Xem thống kê khách hàng"},
+        {"code": "stat_sales", "name": "Xem thống kê doanh số"}
+    ]
+    
+    # Tạo các quyền nếu chưa tồn tại
+    for perm in default_permissions:
+        Permission.objects.get_or_create(code=perm["code"], defaults={"name": perm["name"]})
+    
+    # Tạo vai trò mặc định cho Admin với tất cả quyền
+    admin_role, created = Role.objects.get_or_create(
+        name="Admin", 
+        defaults={"slug": "admin"}
+    )
+    
+    if created:
+        # Gán tất cả quyền cho vai trò Admin
+        for perm in Permission.objects.all():
+            RolePermission.objects.get_or_create(role=admin_role, permission=perm)
+    
+    # Tạo vai trò cho Nhân viên bán hàng
+    sales_role, created = Role.objects.get_or_create(
+        name="Nhân viên bán hàng", 
+        defaults={"slug": "sales-staff"}
+    )
+    
+    if created:
+        # Danh sách mã quyền cho nhân viên bán hàng
+        sales_permissions = [
+            "product_view", "category_view", "brand_view",
+            "order_view", "order_detail", "order_update",
+            "customer_view", "customer_detail"
+        ]
+        
+        # Gán quyền cho vai trò nhân viên bán hàng
+        for perm_code in sales_permissions:
+            try:
+                perm = Permission.objects.get(code=perm_code)
+                RolePermission.objects.get_or_create(role=sales_role, permission=perm)
+            except Permission.DoesNotExist:
+                continue
+    
+    # Tạo vai trò cho Nhân viên kho
+    inventory_role, created = Role.objects.get_or_create(
+        name="Nhân viên kho", 
+        defaults={"slug": "inventory-staff"}
+    )
+    
+    if created:
+        # Danh sách mã quyền cho nhân viên kho
+        inventory_permissions = [
+            "product_view", "product_edit", "category_view", "brand_view",
+            "supplier_view", "import_view", "import_add", "import_detail"
+        ]
+        
+        # Gán quyền cho vai trò nhân viên kho
+        for perm_code in inventory_permissions:
+            try:
+                perm = Permission.objects.get(code=perm_code)
+                RolePermission.objects.get_or_create(role=inventory_role, permission=perm)
+            except Permission.DoesNotExist:
+                continue
 
 
 def is_admin(user):
@@ -16,6 +142,83 @@ def is_admin(user):
         return user.is_authenticated and hasattr(user, 'employee') and user.employee.role is not None
     except:
         return False
+
+
+def permission_required(permission_code):
+    """
+    Decorator kiểm tra quyền truy cập theo mã quyền.
+    Sử dụng: @permission_required('product_view')
+    """
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped_view(request, *args, **kwargs):
+            if not request.user.is_authenticated:
+                return redirect('login')
+            
+            # Kiểm tra người dùng có quyền không
+            if not hasattr(request.user, 'employee'):
+                return HttpResponseForbidden("Bạn không có quyền truy cập trang này")
+                
+            if not request.user.employee.has_permission(permission_code):
+                messages.error(request, f'Bạn không có quyền {permission_code} để thực hiện chức năng này')
+                return redirect('admin_dashboard')
+                
+            return view_func(request, *args, **kwargs)
+        return _wrapped_view
+    return decorator
+
+
+def permissions_required(permission_codes):
+    """
+    Decorator kiểm tra người dùng có nhiều quyền khác nhau.
+    Sử dụng: @permissions_required(['product_view', 'product_edit'])
+    """
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped_view(request, *args, **kwargs):
+            if not request.user.is_authenticated:
+                return redirect('login')
+            
+            # Kiểm tra người dùng có quyền không
+            if not hasattr(request.user, 'employee'):
+                return HttpResponseForbidden("Bạn không có quyền truy cập trang này")
+                
+            if not request.user.employee.has_permissions(permission_codes):
+                missing_permissions = []
+                for code in permission_codes:
+                    if not request.user.employee.has_permission(code):
+                        missing_permissions.append(code)
+                
+                messages.error(request, f'Bạn không có đủ quyền để thực hiện chức năng này. Thiếu quyền: {", ".join(missing_permissions)}')
+                return redirect('admin_dashboard')
+                
+            return view_func(request, *args, **kwargs)
+        return _wrapped_view
+    return decorator
+
+
+def any_permission_required(permission_codes):
+    """
+    Decorator kiểm tra người dùng có ít nhất một quyền trong danh sách.
+    Sử dụng: @any_permission_required(['product_edit', 'product_add'])
+    """
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped_view(request, *args, **kwargs):
+            if not request.user.is_authenticated:
+                return redirect('login')
+            
+            # Kiểm tra người dùng có quyền không
+            if not hasattr(request.user, 'employee'):
+                return HttpResponseForbidden("Bạn không có quyền truy cập trang này")
+                
+            if not request.user.employee.has_any_permission(permission_codes):
+                messages.error(request, f'Bạn cần có một trong các quyền sau để thực hiện chức năng này: {", ".join(permission_codes)}')
+                return redirect('admin_dashboard')
+                
+            return view_func(request, *args, **kwargs)
+        return _wrapped_view
+    return decorator
 
 
 @login_required
@@ -83,7 +286,7 @@ def calculate_percent_change(current, previous):
 
 # PRODUCT MANAGEMENT
 @login_required
-@user_passes_test(is_admin)
+@permission_required('product_view')
 def product_list(request):
     """Danh sách sản phẩm."""
     products = Product.objects.all()
@@ -121,7 +324,7 @@ def product_list(request):
 
 
 @login_required
-@user_passes_test(is_admin)
+@permission_required('product_add')
 def product_add(request):
     """Thêm sản phẩm mới."""
     if request.method == 'POST':
@@ -177,7 +380,7 @@ def product_add(request):
 
 
 @login_required
-@user_passes_test(is_admin)
+@permission_required('product_edit')
 def product_edit(request, product_id):
     """Chỉnh sửa sản phẩm."""
     product = get_object_or_404(Product, id=product_id)
@@ -236,7 +439,7 @@ def product_edit(request, product_id):
 
 
 @login_required
-@user_passes_test(is_admin)
+@permission_required('product_delete')
 def product_delete(request, product_id):
     """Xóa sản phẩm."""
     product = get_object_or_404(Product, id=product_id)
@@ -696,20 +899,22 @@ def employee_delete(request, employee_id):
 
 
 @login_required
-@user_passes_test(is_admin)
+@permission_required('role_view')
 def role_list(request):
     """Danh sách vai trò."""
     roles = Role.objects.all()
+    permissions = Permission.objects.all().order_by('code')
     
     context = {
         'roles': roles,
+        'permissions': permissions,
     }
     
     return render(request, 'admin_panel/role_list.html', context)
 
 
 @login_required
-@user_passes_test(is_admin)
+@permission_required('role_add')
 def role_add(request):
     """Thêm vai trò mới."""
     if request.method == 'POST':
@@ -723,7 +928,8 @@ def role_add(request):
         # Xử lý quyền
         permissions = request.POST.getlist('permissions')
         for perm_id in permissions:
-            role.permissions.add(Permission.objects.get(id=perm_id))
+            permission = Permission.objects.get(id=perm_id)
+            RolePermission.objects.create(role=role, permission=permission)
         
         messages.success(request, f'Đã thêm vai trò "{name}" thành công')
         return redirect('admin_role_list')
@@ -736,7 +942,7 @@ def role_add(request):
 
 
 @login_required
-@user_passes_test(is_admin)
+@permission_required('role_edit')
 def role_edit(request, role_id):
     """Chỉnh sửa vai trò."""
     role = get_object_or_404(Role, id=role_id)
@@ -746,10 +952,11 @@ def role_edit(request, role_id):
         role.save()
         
         # Cập nhật quyền
-        role.permissions.clear()
+        RolePermission.objects.filter(role=role).delete()
         permissions = request.POST.getlist('permissions')
         for perm_id in permissions:
-            role.permissions.add(Permission.objects.get(id=perm_id))
+            permission = Permission.objects.get(id=perm_id)
+            RolePermission.objects.create(role=role, permission=permission)
         
         messages.success(request, f'Đã cập nhật vai trò "{role.name}" thành công')
         return redirect('admin_role_list')
@@ -757,19 +964,24 @@ def role_edit(request, role_id):
     context = {
         'role': role,
         'permissions': Permission.objects.all(),
-        'role_permissions': [p.id for p in role.permissions.all()],
+        'role_permissions': [p.permission.id for p in RolePermission.objects.filter(role=role)],
     }
     
     return render(request, 'admin_panel/role_edit.html', context)
 
 
 @login_required
-@user_passes_test(is_admin)
+@permission_required('role_delete')
 def role_delete(request, role_id):
     """Xóa vai trò."""
     role = get_object_or_404(Role, id=role_id)
     
     if request.method == 'POST':
+        # Kiểm tra xem vai trò đó có đang được sử dụng không
+        if Employee.objects.filter(role=role).exists():
+            messages.error(request, f'Không thể xóa vai trò "{role.name}" vì đang được gán cho nhân viên')
+            return redirect('admin_role_list')
+        
         role_name = role.name
         role.delete()
         
@@ -778,6 +990,7 @@ def role_delete(request, role_id):
     
     context = {
         'role': role,
+        'employee_count': Employee.objects.filter(role=role).count(),
     }
     
     return render(request, 'admin_panel/role_delete.html', context)
