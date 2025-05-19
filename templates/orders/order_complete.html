@@ -1,5 +1,6 @@
 {% extends 'base/base.html' %}
 {% load static %}
+{% load custom_filters %}
 
 {% block title %}Đặt hàng thành công - FShop{% endblock %}
 
@@ -29,7 +30,7 @@
                         <div class="text-gray-600">Ngày đặt hàng:</div>
                         <div class="font-medium">{{ order.created_at|date:"d/m/Y H:i" }}</div>
                         <div class="text-gray-600">Tổng tiền:</div>
-                        <div class="font-medium text-amber-600">{{ order.get_total|floatformat:0 }} ₫</div>
+                        <div class="font-medium text-amber-600">{{ order.grand_total|currency_format }} ₫</div>
                         <div class="text-gray-600">Phương thức thanh toán:</div>
                         <div class="font-medium">{{ order.get_payment_method_display }}</div>
                     </div>
@@ -40,7 +41,7 @@
                         Tiếp tục mua sắm
                     </a>
                     <div>
-                        <a href="#" class="text-amber-600 hover:text-amber-800 text-sm">
+                        <a href="{% url 'order_detail' order.id %}" class="text-amber-600 hover:text-amber-800 text-sm">
                             Kiểm tra trạng thái đơn hàng
                         </a>
                     </div>

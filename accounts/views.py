@@ -69,8 +69,8 @@ def register(request):
         # Tạo hồ sơ khách hàng
         Customer.objects.create(user=user)
         
-        # Đăng nhập người dùng
-        login(request, user)
+        # Đăng nhập người dùng với ModelBackend
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         messages.success(request, 'Đăng ký tài khoản thành công')
         return redirect('home')
     

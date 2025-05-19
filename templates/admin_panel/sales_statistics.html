@@ -13,7 +13,7 @@
     <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-primary-50 rounded-lg p-4">
             <p class="text-sm text-gray-500">Doanh thu hôm nay</p>
-            <p class="text-2xl font-semibold text-primary-700 mt-2">{{ revenue_today|floatformat:0 }} ₫</p>
+            <p class="text-2xl font-semibold text-primary-700 mt-2">{{ revenue_today|currency_format|default:"0" }} ₫</p>
             <div class="flex items-center mt-2">
                 {% if today_percent_change > 0 %}
                 <span class="text-green-500 text-sm"><i class="fas fa-arrow-up mr-1"></i>{{ today_percent_change }}%</span>
@@ -28,7 +28,7 @@
         
         <div class="bg-primary-50 rounded-lg p-4">
             <p class="text-sm text-gray-500">Doanh thu tuần này</p>
-            <p class="text-2xl font-semibold text-primary-700 mt-2">{{ revenue_this_week|floatformat:0 }} ₫</p>
+            <p class="text-2xl font-semibold text-primary-700 mt-2">{{ revenue_this_week|currency_format|default:"0" }} ₫</p>
             <div class="flex items-center mt-2">
                 {% if week_percent_change > 0 %}
                 <span class="text-green-500 text-sm"><i class="fas fa-arrow-up mr-1"></i>{{ week_percent_change }}%</span>
@@ -43,7 +43,7 @@
         
         <div class="bg-primary-50 rounded-lg p-4">
             <p class="text-sm text-gray-500">Doanh thu tháng này</p>
-            <p class="text-2xl font-semibold text-primary-700 mt-2">{{ revenue_this_month|floatformat:0 }} ₫</p>
+            <p class="text-2xl font-semibold text-primary-700 mt-2">{{ revenue_this_month|currency_format|default:"0" }} ₫</p>
             <div class="flex items-center mt-2">
                 {% if month_percent_change > 0 %}
                 <span class="text-green-500 text-sm"><i class="fas fa-arrow-up mr-1"></i>{{ month_percent_change }}%</span>
@@ -58,7 +58,7 @@
         
         <div class="bg-primary-50 rounded-lg p-4">
             <p class="text-sm text-gray-500">Doanh thu năm nay</p>
-            <p class="text-2xl font-semibold text-primary-700 mt-2">{{ revenue_this_year|floatformat:0 }} ₫</p>
+            <p class="text-2xl font-semibold text-primary-700 mt-2">{{ revenue_this_year|currency_format|default:"0" }} ₫</p>
             <div class="flex items-center mt-2">
                 {% if year_percent_change > 0 %}
                 <span class="text-green-500 text-sm"><i class="fas fa-arrow-up mr-1"></i>{{ year_percent_change }}%</span>
@@ -140,7 +140,7 @@
                                 {{ category.name }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ category.revenue|floatformat:0 }} ₫
+                                {{ category.revenue|currency_format }} ₫
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {{ category.percentage|floatformat:1 }}%

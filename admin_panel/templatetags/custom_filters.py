@@ -24,4 +24,18 @@ def has_any_perm(employee, permission_codes):
         return False
     
     codes = permission_codes.split(',')
-    return employee.has_any_permission(codes) 
+    return employee.has_any_permission(codes)
+
+@register.filter
+def currency_format(value):
+    """Định dạng số tiền theo chuẩn tiền tệ Việt Nam."""
+    try:
+        # Chuyển đổi thành số nếu là chuỗi
+        if isinstance(value, str):
+            value = float(value.replace(',', ''))
+            
+        # Trả về số được định dạng với dấu phân cách hàng nghìn
+        # và không có thập phân (làm tròn thành số nguyên)
+        return "{:,.0f}".format(value)
+    except (ValueError, TypeError):
+        return value 
